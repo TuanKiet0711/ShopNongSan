@@ -1,0 +1,48 @@
+﻿@model IEnumerable<ShopNongSan.Models.SanPham>
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+<h2 class="mb-3">Quản lý sản phẩm</h2>
+
+@if (TempData["msg"] != null)
+{
+    <div class="alert alert-success">@TempData["msg"]</div>
+}
+
+<div class="mb-3">
+    <a asp-area="Admin" asp-controller="SanPhams" asp-action="Create" class="btn btn-primary">+ Thêm mới</a>
+</div>
+
+<table class="table table-bordered align-middle">
+    <thead class="table-light">
+        <tr>
+            <th style="width:90px">Ảnh</th>
+            <th>Tên</th>
+            <th>Danh mục</th>
+            <th>Thương hiệu</th>
+            <th class="text-end">Giá</th>
+            <th class="text-center">Tồn</th>
+            <th style="width:140px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var sp in Model)
+        {
+            <tr>
+                <td>
+                    <img src="@(string.IsNullOrEmpty(sp.HinhAnh) ? Url.Content("~/images/no-image.png") : sp.HinhAnh)"
+                         alt="@sp.Ten" style="width:80px;height:80px;object-fit:cover" class="rounded" />
+                </td>
+                <td>@sp.Ten</td>
+                <td>@sp.DanhMuc?.Ten</td>
+                <td>@sp.ThuongHieu?.Ten</td>
+                <td class="text-end">@sp.Gia.ToString("N0") đ</td>
+                <td class="text-center">@sp.SoLuongTon</td>
+                <td class="text-end">
+                    <a asp-area="Admin" asp-controller="SanPhams" asp-action="Edit" asp-route-id="@sp.Id" class="btn btn-sm btn-warning">Sửa</a>
+                    <a asp-area="Admin" asp-controller="SanPhams" asp-action="Delete" asp-route-id="@sp.Id" class="btn btn-sm btn-outline-danger">Xoá</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

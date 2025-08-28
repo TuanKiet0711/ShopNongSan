@@ -1,0 +1,56 @@
+﻿@model IEnumerable<ShopNongSan.Models.SanPham>
+
+@{
+    ViewData["Title"] = "Danh sách sản phẩm";
+}
+
+<h2 class="mb-4">Danh sách sản phẩm</h2>
+
+@if (TempData["msg"] != null)
+{
+    <div class="alert alert-success">@TempData["msg"]</div>
+}
+
+<div class="row">
+    @foreach (var sp in Model)
+    {
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <img src="@(string.IsNullOrEmpty(sp.HinhAnh) ? Url.Content("~/images/no-image.png") : sp.HinhAnh)"
+                     class="card-img-top"
+                     alt="@sp.Ten"
+                     style="height:200px; object-fit:cover;" />
+                <div class="card-body">
+                    <h5 class="card-title">@sp.Ten</h5>
+                    <p class="card-text text-muted">
+                        Giá: <b>@sp.Gia.ToString("N0") đ</b><br />
+                        Danh mục: @sp.DanhMuc?.Ten <br />
+                        @if (sp.ThuongHieu != null)
+                        {
+                            <span>Thương hiệu: @sp.ThuongHieu.Ten</span>
+                        }
+                    </p>
+
+                    <div class="d-grid gap-2">
+                        <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@sp.Id" />
+                            <input type="hidden" name="qty" value="1" />
+                            <input type="hidden" name="returnUrl"
+                                   value="@Url.Action("Index","GioHang", new { area = "Customer" })" />
+                            <button type="submit" class="btn btn-sm btn-success w-100">Mua hàng</button>
+                        </form>
+
+                        <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@sp.Id" />
+                            <input type="hidden" name="qty" value="1" />
+                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Thêm vào giỏ hàng</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+</div>

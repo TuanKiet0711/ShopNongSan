@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Bảng điều khiển";
+}
+<div class="row g-3">
+    <div class="col-12">
+        <h2 class="mb-3">Bảng điều khiển</h2>
+        <p class="text-muted">Chào mừng bạn đến khu vực quản trị.</p>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="h5">Danh mục</div>
+                <p class="text-muted mb-3">Quản lý nhóm sản phẩm.</p>
+                <a class="btn btn-sm btn-primary" asp-area="Admin" asp-controller="DanhMucs" asp-action="Index">Vào trang</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="h5">Thương hiệu</div>
+                <p class="text-muted mb-3">Quản lý thương hiệu.</p>
+                <a class="btn btn-sm btn-primary" asp-area="Admin" asp-controller="ThuongHieus" asp-action="Index">Vào trang</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="h5">Sản phẩm</div>
+                <p class="text-muted mb-3">Danh sách & tồn kho.</p>
+                <a class="btn btn-sm btn-primary" asp-area="Admin" asp-controller="SanPhams" asp-action="Index">Vào trang</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="h5">Đơn hàng</div>
+                <p class="text-muted mb-3">Theo dõi & xử lý.</p>
+                <a class="btn btn-sm btn-primary" asp-area="Admin" asp-controller="DonHangs" asp-action="Index">Vào trang</a>
+            </div>
+        </div>
+    </div>
+</div>
