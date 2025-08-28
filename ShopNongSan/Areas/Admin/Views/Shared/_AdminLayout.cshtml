@@ -44,18 +44,20 @@
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Home"?"active":"")"
                    asp-area="Admin" asp-controller="Home" asp-action="Index">Bảng điều khiển</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="DanhMucs"?"active":"")"
-                   asp-area="Admin" asp-controller="DanhMucs" asp-action="Index">Danh mục</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="ThuongHieus"?"active":"")"
-                   asp-area="Admin" asp-controller="ThuongHieus" asp-action="Index">Thương hiệu</a>
-            </li>
+           
+           
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="SanPhams"?"active":"")"
                    asp-area="Admin" asp-controller="SanPhams" asp-action="Index">Sản phẩm</a>
             </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="DanhMucs"?"active":"")"
+                       asp-area="Admin" asp-controller="DanhMucs" asp-action="Index">Danh mục</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="ThuongHieus"?"active":"")"
+                       asp-area="Admin" asp-controller="ThuongHieus" asp-action="Index">Thương hiệu</a>
+                </li>
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="DonHangs"?"active":"")"
                    asp-area="Admin" asp-controller="DonHangs" asp-action="Index">Đơn hàng</a>

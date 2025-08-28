@@ -1,0 +1,19 @@
+﻿@model ShopNongSan.Models.TaiKhoan
+@{
+    ViewData["Title"] = "Xoá tài khoản";
+}
+<h2 class="mb-3">Xoá tài khoản</h2>
+
+<div class="card p-3">
+    <h5>@Model.HoTen (@Model.TenDangNhap)</h5>
+    <div>Vai trò: <strong>@Model.VaiTro</strong></div>
+    <div>Mật khẩu: <strong>@Model.MatKhau</strong></div> @* hiển thị theo yêu cầu *@
+    <div>Ngày tạo: @Model.NgayTao.ToString("dd/MM/yyyy")</div>
+
+    <form asp-action="Delete" method="post" class="mt-3">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Xoá tài khoản này?')">Xoá</button>
+        <a asp-action="Index" class="btn btn-secondary">Huỷ</a>
+    </form>
+</div>

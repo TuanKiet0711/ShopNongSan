@@ -1,0 +1,51 @@
+﻿@model ShopNongSan.Models.TaiKhoan
+@{
+    ViewData["Title"] = "Sửa tài khoản";
+    var listVT = ViewBag.VaiTroList as List<string>;
+}
+
+<h2 class="mb-3">Sửa tài khoản</h2>
+
+<form asp-action="Edit" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+    <input type="hidden" asp-for="Id" />
+
+    <div class="col-md-4">
+        <label class="form-label">Tên đăng nhập</label>
+        <input asp-for="TenDangNhap" class="form-control" />
+        <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Mật khẩu</label>
+        <input asp-for="MatKhau" type="text" class="form-control" /> @* hiển thị text *@
+        <span asp-validation-for="MatKhau" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Họ tên</label>
+        <input asp-for="HoTen" class="form-control" />
+        <span asp-validation-for="HoTen" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Vai trò</label>
+        <select asp-for="VaiTro" class="form-select">
+            @foreach (var vt in listVT)
+            {
+                <option value="@vt" selected="@(Model.VaiTro == vt ? "selected" : null)">@vt</option>
+            }
+        </select>
+        <span asp-validation-for="VaiTro" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Cập nhật</button>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,21 @@
+﻿@model ShopNongSan.Models.DanhMuc
+@{
+    ViewData["Title"] = "Thêm danh mục";
+}
+<h2 class="mb-3">Thêm danh mục</h2>
+
+<form asp-action="Create" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+    <div class="col-md-6">
+        <label class="form-label">Tên danh mục</label>
+        <input asp-for="Ten" class="form-control" />
+        <span asp-validation-for="Ten" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a asp-action="Index" class="btn btn-secondary">Huỷ</a>
+    </div>
+</form>
