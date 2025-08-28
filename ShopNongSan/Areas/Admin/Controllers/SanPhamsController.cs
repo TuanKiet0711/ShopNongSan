@@ -38,15 +38,23 @@ namespace ShopNongSan.Areas.Admin.Controllers
                 .Include(s => s.ThuongHieu)
                 .AsQueryable();
 
-            // search (tên SP + tên DM/TH)
+            // =============== SEARCH: gõ KHÔNG DẤU ===============
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var key = q.Trim();
+
+                // Accent-insensitive collation (ưu tiên Vietnamese_100; nếu không có thì dùng SQL_Latin…)
+                const string AI_COLLATION = "Vietnamese_100_CI_AI";
+                // Nếu server bạn không hỗ trợ Vietnamese_100_CI_AI, đổi thành:
+                // const string AI_COLLATION = "SQL_Latin1_General_CP1_CI_AI";
+
                 query = query.Where(s =>
-                    EF.Functions.Like(s.Ten, $"%{key}%") ||
-                    (s.DanhMuc != null && EF.Functions.Like(s.DanhMuc.Ten, $"%{key}%")) ||
-                    (s.ThuongHieu != null && EF.Functions.Like(s.ThuongHieu.Ten, $"%{key}%")));
+                    EF.Functions.Like(EF.Functions.Collate(s.Ten, AI_COLLATION), $"%{key}%") ||
+                    (s.DanhMuc != null && EF.Functions.Like(EF.Functions.Collate(s.DanhMuc.Ten!, AI_COLLATION), $"%{key}%")) ||
+                    (s.ThuongHieu != null && EF.Functions.Like(EF.Functions.Collate(s.ThuongHieu.Ten!, AI_COLLATION), $"%{key}%"))
+                );
             }
+            // =====================================================
 
             // filter
             if (danhMucId.HasValue && danhMucId > 0) query = query.Where(s => s.DanhMucId == danhMucId);
@@ -75,7 +83,6 @@ namespace ShopNongSan.Areas.Admin.Controllers
 
             return View(data);
         }
-
 
         // ====== CREATE ======
         [HttpGet]
