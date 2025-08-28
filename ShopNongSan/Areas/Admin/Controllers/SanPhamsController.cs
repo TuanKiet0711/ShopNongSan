@@ -20,17 +20,62 @@ namespace ShopNongSan.Areas.Admin.Controllers
             _env = env;
         }
 
-        // ====== LIST ======
+        // ====== LIST (Search + Filter + Pagination) ======
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? q, int? danhMucId, int? thuongHieuId, int page = 1, int pageSize = 7)
         {
-            var data = await _context.SanPhams
+            if (page < 1) page = 1;
+            if (pageSize <= 0) pageSize = 7;
+
+            // nguồn select lọc
+            ViewBag.DanhMucId = new SelectList(await _context.DanhMucs.AsNoTracking().ToListAsync(), "Id", "Ten", danhMucId);
+            ViewBag.ThuongHieuId = new SelectList(await _context.ThuongHieus.AsNoTracking().ToListAsync(), "Id", "Ten", thuongHieuId);
+
+            // base query
+            var query = _context.SanPhams
+                .AsNoTracking()
                 .Include(s => s.DanhMuc)
                 .Include(s => s.ThuongHieu)
+                .AsQueryable();
+
+            // search (tên SP + tên DM/TH)
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var key = q.Trim();
+                query = query.Where(s =>
+                    EF.Functions.Like(s.Ten, $"%{key}%") ||
+                    (s.DanhMuc != null && EF.Functions.Like(s.DanhMuc.Ten, $"%{key}%")) ||
+                    (s.ThuongHieu != null && EF.Functions.Like(s.ThuongHieu.Ten, $"%{key}%")));
+            }
+
+            // filter
+            if (danhMucId.HasValue && danhMucId > 0) query = query.Where(s => s.DanhMucId == danhMucId);
+            if (thuongHieuId.HasValue && thuongHieuId > 0) query = query.Where(s => s.ThuongHieuId == thuongHieuId);
+
+            // tổng & phân trang
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)pageSize);
+            if (totalPages == 0) totalPages = 1;
+            if (page > totalPages) page = totalPages;
+
+            var data = await query
                 .OrderByDescending(s => s.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            // giữ lại trạng thái để View xây URL
+            ViewBag.Q = q;
+            ViewBag.FilterDanhMucId = danhMucId;
+            ViewBag.FilterThuongHieuId = thuongHieuId;
+            ViewBag.Page = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = total;
+            ViewBag.PageSize = pageSize;
+
             return View(data);
         }
+
 
         // ====== CREATE ======
         [HttpGet]
