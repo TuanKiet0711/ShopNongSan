@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using ShopNongSan.Models;
 using System.IO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ShopNongSan.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     // [Authorize(Policy = "AdminOnly")] // Bật lại khi đã cấu hình auth
     public class SanPhamsController : Controller
     {

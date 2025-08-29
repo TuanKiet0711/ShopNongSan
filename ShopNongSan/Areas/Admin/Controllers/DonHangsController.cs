@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Models;
@@ -6,6 +7,7 @@ using ShopNongSan.Models;
 namespace ShopNongSan.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public class DonHangsController : Controller
     {
         private readonly NongSanContext _context;
