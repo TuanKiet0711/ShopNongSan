@@ -21,11 +21,11 @@
             </button>
 
             <div id="nav" class="collapse navbar-collapse">
-                <form class="d-flex ms-lg-3 flex-grow-1" method="get"
+                @* <form class="d-flex ms-lg-3 flex-grow-1" method="get"
                       asp-area="Customer" asp-controller="SanPhams" asp-action="Index">
                     <input class="form-control" type="search" placeholder="Tìm kiếm sản phẩm..." name="q" value="@q" />
                     <button class="btn btn-success ms-2" type="submit">Tìm</button>
-                </form>
+                </form> *@
 
                 <ul class="navbar-nav ms-auto align-items-lg-center mt-2 mt-lg-0">
                     @if (User?.Identity?.IsAuthenticated ?? false)

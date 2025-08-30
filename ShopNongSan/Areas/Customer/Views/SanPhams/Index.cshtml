@@ -1,8 +1,15 @@
 ﻿@model IEnumerable<ShopNongSan.Models.SanPham>
-
+@using ShopNongSan.Models.ViewModels
 @{
     ViewData["Title"] = "Danh sách sản phẩm";
+    var filter = ViewBag.Filter as SanPhamFilterVM ?? new SanPhamFilterVM();
 }
+
+<style>
+    .filter-inline { gap: .5rem 1rem; }
+    .filter-inline .fi { min-width: 180px; }
+    @@media (max-width: 992px){ .filter-inline .fi { min-width: 140px; } }
+</style>
 
 <h2 class="mb-4">Danh sách sản phẩm</h2>
 
@@ -11,46 +18,115 @@
     <div class="alert alert-success">@TempData["msg"]</div>
 }
 
+<form method="get" asp-area="Customer" asp-controller="SanPhams" asp-action="Index"
+      class="filter-inline d-flex flex-wrap align-items-end mb-4">
+
+    <div class="fi">
+        <label class="form-label mb-1 small">Từ khóa</label>
+        <input type="text" name="Q" value="@(filter.Q ?? "")"
+               class="form-control form-control-sm" placeholder="Tên sản phẩm...">
+    </div>
+
+    <div class="fi">
+        <label class="form-label mb-1 small">Danh mục</label>
+        <select name="DanhMucId" class="form-select form-select-sm" asp-items="ViewBag.DanhMucList">
+            <option value="">-- Tất cả --</option>
+        </select>
+    </div>
+
+    <div class="fi">
+        <label class="form-label mb-1 small">Thương hiệu</label>
+        <select name="ThuongHieuId" class="form-select form-select-sm" asp-items="ViewBag.ThuongHieuList">
+            <option value="">-- Tất cả --</option>
+        </select>
+    </div>
+
+    <div class="fi">
+        <label class="form-label mb-1 small">Sắp xếp</label>
+        <select name="Sort" class="form-select form-select-sm">
+            <option value="" selected="@(string.IsNullOrEmpty(filter.Sort))">Theo tên (A→Z)</option>
+            <option value="price_asc"  selected="@(filter.Sort=="price_asc")">Giá: Thấp → Cao</option>
+            <option value="price_desc" selected="@(filter.Sort=="price_desc")">Giá: Cao → Thấp</option>
+            <option value="newest"     selected="@(filter.Sort=="newest")">Mới nhất</option>
+        </select>
+    </div>
+
+    <div class="fi">
+        <label class="form-label mb-1 small">Giá từ</label>
+        <div class="input-group input-group-sm">
+            <input type="text" name="GiaMinStr" id="GiaMinStr"
+                   value="@(filter.GiaMinStr ?? "")"
+                   class="form-control vnd-only"
+                   inputmode="numeric" >
+            <span class="input-group-text">đ</span>
+        </div>
+    </div>
+
+    <div class="fi">
+        <label class="form-label mb-1 small">đến</label>
+        <div class="input-group input-group-sm">
+            <input type="text" name="GiaMaxStr" id="GiaMaxStr"
+                   value="@(filter.GiaMaxStr ?? "")"
+                   class="form-control vnd-only"
+                   inputmode="numeric" >
+            <span class="input-group-text">đ</span>
+        </div>
+    </div>
+
+    <div class="d-flex align-items-end mb-1" style="gap:.5rem">
+        <button type="submit" class="btn btn-sm btn-primary">Lọc</button>
+        <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-sm btn-outline-secondary">Xoá lọc</a>
+    </div>
+</form>
+
 <div class="row">
-    @foreach (var sp in Model)
-    {
-        <div class="col-md-3 mb-4">
-            <div class="card shadow-sm">
-                <img src="@(string.IsNullOrEmpty(sp.HinhAnh) ? Url.Content("~/images/no-image.png") : sp.HinhAnh)"
-                     class="card-img-top"
-                     alt="@sp.Ten"
-                     style="height:200px; object-fit:cover;" />
-                <div class="card-body">
-                    <h5 class="card-title">@sp.Ten</h5>
-                    <p class="card-text text-muted">
-                        Giá: <b>@sp.Gia.ToString("N0") đ</b><br />
-                        Danh mục: @sp.DanhMuc?.Ten <br />
-                        @if (sp.ThuongHieu != null)
-                        {
-                            <span>Thương hiệu: @sp.ThuongHieu.Ten</span>
-                        }
-                    </p>
+@foreach (var sp in Model)
+{
+    <div class="col-md-3 mb-4">
+        <div class="card shadow-sm h-100">
+            <img src="@(string.IsNullOrEmpty(sp.HinhAnh) ? Url.Content("~/images/no-image.png") : sp.HinhAnh)"
+                 class="card-img-top" alt="@sp.Ten" style="height:200px; object-fit:cover;" />
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">@sp.Ten</h5>
+                <p class="card-text text-muted">
+                    Giá: <b>@sp.Gia.ToString("N0") đ</b><br />
+                    Danh mục: @sp.DanhMuc?.Ten <br />
+                    @if (sp.ThuongHieu != null) { <span>Thương hiệu: @sp.ThuongHieu.Ten</span> }
+                </p>
 
-                    <div class="d-grid gap-2">
-                        <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@sp.Id" />
-                            <input type="hidden" name="qty" value="1" />
-                            <input type="hidden" name="returnUrl"
-                                   value="@Url.Action("Index","GioHang", new { area = "Customer" })" />
-                            <button type="submit" class="btn btn-sm btn-success w-100">Mua hàng</button>
-                        </form>
+                <div class="mt-auto d-grid gap-2">
+                    <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@sp.Id" />
+                        <input type="hidden" name="qty" value="1" />
+                        <input type="hidden" name="returnUrl" value="@Url.Action("Index","GioHang", new { area = "Customer" })" />
+                        <button type="submit" class="btn btn-sm btn-success w-100">Mua hàng</button>
+                    </form>
 
-                        <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@sp.Id" />
-                            <input type="hidden" name="qty" value="1" />
-                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Thêm vào giỏ hàng</button>
-                        </form>
-                    </div>
-
+                    <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@sp.Id" />
+                        <input type="hidden" name="qty" value="1" />
+                        <button type="submit" class="btn btn-sm btn-outline-primary w-100">Thêm vào giỏ hàng</button>
+                    </form>
                 </div>
             </div>
         </div>
-    }
+    </div>
+}
 </div>
+
+@section Scripts{
+<script>
+    // Format số theo vi-VN (chỉ số, KHÔNG chèn "đ" vào value)
+    const nf = new Intl.NumberFormat('vi-VN');
+    function formatNumeric(el){
+        const digits = (el.value || "").replace(/\D+/g, "");
+        el.value = digits ? nf.format(parseInt(digits,10)) : "";
+    }
+    document.querySelectorAll(".vnd-only").forEach(el=>{
+        el.addEventListener("input", ()=>formatNumeric(el));
+        if (el.value) formatNumeric(el);
+    });
+</script>
+}
