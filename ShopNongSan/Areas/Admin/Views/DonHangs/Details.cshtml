@@ -1,0 +1,74 @@
+﻿@model ShopNongSan.Models.DonHang
+@{
+    ViewData["Title"] = "Chi tiết đơn " + Model.MaDonHang;
+}
+
+<div class="d-flex align-items-center mb-3" style="gap:.5rem">
+    <h2 class="mb-0">Đơn: @Model.MaDonHang</h2>
+    <span class="badge bg-secondary ms-2">@Model.TrangThai</span>
+    <div class="ms-auto d-flex" style="gap:.5rem">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-primary">Sửa</a>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Quay lại</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Thông tin chung</h5>
+                <dl class="row mb-0">
+                    <dt class="col-5">Mã đơn</dt>
+                    <dd class="col-7">@Model.MaDonHang</dd>
+
+                    <dt class="col-5">Khách hàng</dt>
+                    <dd class="col-7">@Model.TaiKhoan?.HoTen (@Model.TaiKhoanId)</dd>
+
+                    <dt class="col-5">Trạng thái</dt>
+                    <dd class="col-7">@Model.TrangThai</dd>
+
+                    <dt class="col-5">Tổng tiền</dt>
+                    <dd class="col-7">@Model.TongTien.ToString("N0") đ</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Sản phẩm</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ct in Model.DonHangChiTiets)
+                            {
+                                <tr>
+                                    <td>@ct.SanPham?.Ten (@ct.SanPhamId)</td>
+                                    <td class="text-end">@ct.DonGia.ToString("N0") đ</td>
+                                    <td class="text-center">@ct.SoLuong</td>
+                                    <td class="text-end">@((ct.DonGia * ct.SoLuong).ToString("N0")) đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Tổng cộng</th>
+                                <th class="text-end">@Model.TongTien.ToString("N0") đ</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0">Chỉnh trạng thái trong trang Sửa.</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,51 @@
+﻿@model IEnumerable<ShopNongSan.Models.DonHang>
+@{
+    ViewData["Title"] = "Đơn hàng";
+}
+
+<h2 class="mb-3">Đơn hàng</h2>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="status" class="form-select form-select-sm" asp-items="ViewBag.StatusList">
+            <option value="">-- Tất cả --</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <input type="text" name="q" value="@((string)ViewBag.Q ?? "")" class="form-control form-control-sm" placeholder="Mã đơn..." />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-sm btn-primary">Lọc</button>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Xóa lọc</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th class="text-end">Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th style="width:200px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model)
+            {
+                <tr>
+                    <td>@d.MaDonHang</td>
+                    <td>@d.TaiKhoan?.HoTen</td>
+                    <td class="text-end">@d.TongTien.ToString("N0") đ</td>
+                    <td>@d.TrangThai</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-sm btn-outline-secondary">Xem</a>
+                        <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-sm btn-outline-primary">Sửa</a>
+                        <a asp-action="Delete" asp-route-id="@d.Id" class="btn btn-sm btn-outline-danger">Xóa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

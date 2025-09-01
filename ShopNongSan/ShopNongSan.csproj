@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Admin\Views\DonHangs\" />
+    <Folder Include="wwwroot\images\products\" />
   </ItemGroup>
 
 </Project>

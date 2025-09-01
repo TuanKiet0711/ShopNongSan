@@ -92,13 +92,16 @@
                 </p>
 
                 <div class="mt-auto d-grid gap-2">
-                    <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@sp.Id" />
-                        <input type="hidden" name="qty" value="1" />
-                        <input type="hidden" name="returnUrl" value="@Url.Action("Index","GioHang", new { area = "Customer" })" />
-                        <button type="submit" class="btn btn-sm btn-success w-100">Mua hàng</button>
-                    </form>
+                        <form asp-area="Customer" asp-controller="DonHangs" asp-action="BuyNow" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@sp.Id" />
+                            <input type="hidden" name="qty" value="1" />
+                            <!-- nếu đang ở trang có filter/paging, quay lại đúng trang sau khi login -->
+                            <input type="hidden" name="returnUrl" value="@(Context?.Request?.Path + Context?.Request?.QueryString)" />
+                            <button type="submit" class="btn btn-sm btn-success w-100">Mua hàng</button>
+                        </form>
+
+
 
                     <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
                         @Html.AntiForgeryToken()

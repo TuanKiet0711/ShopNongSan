@@ -1,0 +1,46 @@
+﻿@model IEnumerable<ShopNongSan.Models.DonHang>
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+<h2 class="mb-3">Đơn hàng của tôi</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Bạn chưa có đơn nào.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th class="text-end">Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th style="width:220px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model)
+            {
+                <tr>
+                    <td>@d.MaDonHang</td>
+                    <td class="text-end">@d.TongTien.ToString("N0") đ</td>
+                    <td>@d.TrangThai</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-sm btn-outline-primary me-2">Chi tiết</a>
+
+                        @if (string.Equals(d.TrangThai, "Pending", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <form asp-action="Cancel" method="post" class="d-inline"
+                                  onsubmit="return confirm('Hủy đơn @d.MaDonHang ?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@d.Id" />
+                                <button type="submit" class="btn btn-sm btn-danger">Hủy</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

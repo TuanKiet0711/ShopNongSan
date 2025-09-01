@@ -1,0 +1,133 @@
+﻿@model ShopNongSan.Models.ViewModels.CheckoutVM
+@{
+    ViewData["Title"] = "Thông tin giao hàng";
+}
+
+<h2 class="mb-3">Thông tin giao hàng</h2>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-area="Customer" asp-controller="DonHangs" asp-action="Place" method="post" class="row g-3">
+                    @Html.AntiForgeryToken()
+
+                    <!-- ==== HIDDEN cho mua ngay ==== -->
+                    <input type="hidden" asp-for="IsBuyNow" />
+                    <input type="hidden" asp-for="BuyNowSanPhamId" />
+                    <input type="hidden" asp-for="BuyNowSoLuong" />
+
+                    <div class="col-12">
+                        <label class="form-label">Họ tên người nhận</label>
+                        <input asp-for="HoTen" class="form-control" />
+                        <span asp-validation-for="HoTen" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Số điện thoại</label>
+                        <input asp-for="SoDienThoai" class="form-control" />
+                        <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Địa chỉ giao hàng</label>
+                        <textarea asp-for="DiaChi" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="DiaChi" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Ghi chú (tuỳ chọn)</label>
+                        <input asp-for="GhiChu" class="form-control" />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label d-block">Phương thức thanh toán</label>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="COD" id="pmCOD" />
+                            <label class="form-check-label" for="pmCOD">Thanh toán khi nhận hàng (COD)</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="BANK" id="pmBANK" />
+                            <label class="form-check-label" for="pmBANK">Chuyển khoản ngân hàng</label>
+                        </div>
+
+                        <span asp-validation-for="PhuongThucThanhToan" class="text-danger"></span>
+
+                        <div id="bankInfo" class="alert alert-secondary mt-2" style="display:none">
+                            <div class="small mb-1"><b>Hướng dẫn chuyển khoản</b></div>
+                            <div class="small">
+                                Ngân hàng: Vietcombank – CN TP.HCM<br />
+                                Số TK: 0123456789 – Chủ TK: NONG SAN SACH CO., LTD<br />
+                                Nội dung: Thanh toan don hang + Họ tên/SĐT
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-flex gap-2">
+                        <a asp-area="Customer" asp-controller="GioHang" asp-action="Index" class="btn btn-outline-secondary">Quay lại giỏ</a>
+                        <button type="submit" class="btn btn-success ms-auto">Xác nhận đặt hàng</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Tóm tắt đơn</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:70px">Ảnh</th>
+                                <th>Sản phẩm</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var i in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <img src="@(string.IsNullOrEmpty(i.HinhAnh) ? Url.Content("~/images/no-image.png") : Url.Content(i.HinhAnh))"
+                                             style="width:60px;height:60px;object-fit:cover" />
+                                    </td>
+                                    <td>@i.TenSanPham</td>
+                                    <td class="text-end">@i.DonGia.ToString("N0") đ</td>
+                                    <td class="text-center">@i.SoLuong</td>
+                                    <td class="text-end">@i.ThanhTien.ToString("N0") đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">Tổng cộng</th>
+                                <th class="text-end">@Model.TongTien.ToString("N0") đ</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0">Giá đã bao gồm VAT (nếu có). Phí vận chuyển tính theo địa chỉ giao hàng.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleBankInfo() {
+            var v = document.querySelector('input[name="PhuongThucThanhToan"]:checked')?.value;
+            document.getElementById('bankInfo').style.display = (v === 'BANK') ? 'block' : 'none';
+        }
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.name === 'PhuongThucThanhToan') toggleBankInfo();
+        });
+        document.addEventListener('DOMContentLoaded', toggleBankInfo);
+    </script>
+}

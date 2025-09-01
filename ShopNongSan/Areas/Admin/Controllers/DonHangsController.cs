@@ -10,162 +10,175 @@ namespace ShopNongSan.Areas.Admin.Controllers
     [Authorize(Roles = "Admin,Staff")]
     public class DonHangsController : Controller
     {
-        private readonly NongSanContext _context;
+        private readonly NongSanContext _db;
+        public DonHangsController(NongSanContext db) => _db = db;
 
-        public DonHangsController(NongSanContext context)
+        // Khớp với CHECK constraint trong DB
+        private static readonly string[] AllowedStatuses =
+            new[] { "Pending", "Confirmed", "Shipped", "Completed", "Cancelled" };
+
+        // GET: /Admin/DonHangs
+        public async Task<IActionResult> Index(string? status, string? q)
         {
-            _context = context;
-        }
-
-        // ===== INDEX =====
-        [HttpGet]
-        public async Task<IActionResult> Index(string? q, string? trangThai, int page = 1, int pageSize = 10)
-        {
-            if (page < 1) page = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var query = _context.DonHangs
+            var query = _db.DonHangs
                 .Include(d => d.TaiKhoan)
-                .AsNoTracking()
+                .OrderByDescending(d => d.Id)
                 .AsQueryable();
 
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(d => d.TrangThai == status);
+
             if (!string.IsNullOrWhiteSpace(q))
-            {
-                var key = q.Trim();
-                const string AI_COLLATION = "Vietnamese_100_CI_AI";
-                query = query.Where(dh => EF.Functions.Like(EF.Functions.Collate(dh.MaDonHang, AI_COLLATION), $"%{key}%"));
-            }
+                query = query.Where(d => d.MaDonHang.Contains(q));
 
-            if (!string.IsNullOrWhiteSpace(trangThai))
-                query = query.Where(dh => dh.TrangThai == trangThai);
-
-            var total = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(total / (double)pageSize);
-            if (totalPages == 0) totalPages = 1;
-            if (page > totalPages) page = totalPages;
-
-            var data = await query
-                .OrderByDescending(dh => dh.Id)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
+            ViewBag.StatusList = new SelectList(AllowedStatuses);
+            ViewBag.FilterStatus = status;
             ViewBag.Q = q;
-            ViewBag.TrangThai = trangThai;
-            ViewBag.Page = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalCount = total;
-            ViewBag.PageSize = pageSize;
 
-            ViewBag.TrangThaiList = new List<string> { "Chờ xử lý", "Đang giao", "Hoàn tất", "Đã huỷ" };
-
-            return View(data);
+            var list = await query.Take(500).ToListAsync();
+            return View(list);
         }
 
-        // ===== CREATE =====
-        [HttpGet]
-        public async Task<IActionResult> Create()
+        // GET: /Admin/DonHangs/Details/5
+        public async Task<IActionResult> Details(long id)
         {
-            await LoadDropdowns();
-            return View();
+            var don = await _db.DonHangs
+                .Include(d => d.TaiKhoan)
+                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                .FirstOrDefaultAsync(d => d.Id == id);
+
+            if (don == null) return NotFound();
+            return View(don);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(DonHang model)
-        {
-            ModelState.Remove("TaiKhoan");
-            ModelState.Remove("DonHangChiTiets");
-            ModelState.Remove("DoiTras");
-
-            if (!ModelState.IsValid)
-            {
-                await LoadDropdowns(model.TaiKhoanId);
-                return View(model);
-            }
-
-            model.MaDonHang = "DH" + DateTime.Now.ToString("yyyyMMddHHmmss"); // auto gen code
-            _context.DonHangs.Add(model);
-            await _context.SaveChangesAsync();
-            SetToast("Tạo đơn hàng thành công");
-            return RedirectToAction(nameof(Index));
-        }
-
-        // ===== EDIT =====
-        [HttpGet]
+        // GET: /Admin/DonHangs/Edit/5
         public async Task<IActionResult> Edit(long id)
         {
-            var dh = await _context.DonHangs.FindAsync(id);
-            if (dh == null) return NotFound();
+            var don = await _db.DonHangs
+                .Include(d => d.TaiKhoan)
+                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                .FirstOrDefaultAsync(d => d.Id == id);
+            if (don == null) return NotFound();
 
-            await LoadDropdowns(dh.TaiKhoanId);
-            return View(dh);
+            ViewBag.StatusList = new SelectList(AllowedStatuses, don.TrangThai);
+            return View(don);
         }
 
+        // POST: /Admin/DonHangs/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, DonHang model)
+        public async Task<IActionResult> Edit(long id, string trangThai)
         {
-            if (id != model.Id) return BadRequest();
+            if (!AllowedStatuses.Contains(trangThai))
+                ModelState.AddModelError(nameof(trangThai), "Trạng thái không hợp lệ.");
 
-            ModelState.Remove("TaiKhoan");
-            ModelState.Remove("DonHangChiTiets");
-            ModelState.Remove("DoiTras");
+            var don = await _db.DonHangs
+                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                .FirstOrDefaultAsync(d => d.Id == id);
+            if (don == null) return NotFound();
 
             if (!ModelState.IsValid)
             {
-                await LoadDropdowns(model.TaiKhoanId);
-                return View(model);
+                ViewBag.StatusList = new SelectList(AllowedStatuses, don.TrangThai);
+                return View(don);
             }
 
-            var dh = await _context.DonHangs.FindAsync(id);
-            if (dh == null) return NotFound();
+            using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                // Đổi sang Cancelled (từ trạng thái khác) → hoàn kho
+                if (trangThai == "Cancelled" &&
+                    !string.Equals(don.TrangThai, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var ct in don.DonHangChiTiets)
+                    {
+                        if (ct.SanPham != null)
+                            ct.SanPham.SoLuongTon += ct.SoLuong;
+                    }
+                }
 
-            dh.TaiKhoanId = model.TaiKhoanId;
-            dh.TongTien = model.TongTien;
-            dh.TrangThai = model.TrangThai;
+                // Bỏ Cancelled (Cancel → khác) → trừ kho lại (nếu đủ)
+                if (don.TrangThai == "Cancelled" && trangThai != "Cancelled")
+                {
+                    // Kiểm tra đủ kho
+                    foreach (var ct in don.DonHangChiTiets)
+                    {
+                        if (ct.SanPham == null) continue;
+                        if (ct.SanPham.SoLuongTon < ct.SoLuong)
+                        {
+                            ModelState.AddModelError("", $"Sản phẩm \"{ct.SanPham.Ten}\" không đủ tồn kho để gỡ hủy.");
+                            ViewBag.StatusList = new SelectList(AllowedStatuses, don.TrangThai);
+                            return View(don);
+                        }
+                    }
+                    // Trừ kho
+                    foreach (var ct in don.DonHangChiTiets)
+                    {
+                        if (ct.SanPham != null)
+                            ct.SanPham.SoLuongTon -= ct.SoLuong;
+                    }
+                }
 
-            await _context.SaveChangesAsync();
-            SetToast("Cập nhật đơn hàng thành công");
-            return RedirectToAction(nameof(Index));
+                don.TrangThai = trangThai;
+                await _db.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                TempData["toast"] = "Đã cập nhật trạng thái đơn.";
+                TempData["toastType"] = "success";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                TempData["toast"] = "Lỗi khi cập nhật: " + ex.Message;
+                TempData["toastType"] = "danger";
+                ViewBag.StatusList = new SelectList(AllowedStatuses, don.TrangThai);
+                return View(don);
+            }
         }
 
-        // ===== DELETE =====
-        [HttpGet]
+        // GET: /Admin/DonHangs/Delete/5
         public async Task<IActionResult> Delete(long id)
         {
-            var dh = await _context.DonHangs
+            var don = await _db.DonHangs
                 .Include(d => d.TaiKhoan)
                 .FirstOrDefaultAsync(d => d.Id == id);
-            if (dh == null) return NotFound();
-            return View(dh);
+            if (don == null) return NotFound();
+            return View(don);
         }
 
+        // POST: /Admin/DonHangs/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
-            var dh = await _context.DonHangs.FindAsync(id);
-            if (dh == null) return NotFound();
+            var don = await _db.DonHangs
+                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                .FirstOrDefaultAsync(d => d.Id == id);
+            if (don == null) return NotFound();
 
-            _context.DonHangs.Remove(dh);
-            await _context.SaveChangesAsync();
-            SetToast("Đã xoá đơn hàng");
-            return RedirectToAction(nameof(Index));
-        }
+            // Khuyến nghị: chỉ xóa khi đã Cancelled để không lệch tồn kho
+            if (!string.Equals(don.TrangThai, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["toast"] = "Chỉ xóa đơn đã Hủy. Vui lòng chuyển trạng thái sang Cancelled trước.";
+                TempData["toastType"] = "warning";
+                return RedirectToAction(nameof(Index));
+            }
 
-        // ===== Helpers =====
-        private async Task LoadDropdowns(Guid? selectedTaiKhoanId = null)
-        {
-            var listTK = await _context.TaiKhoans.AsNoTracking().ToListAsync();
-            ViewBag.TaiKhoanId = new SelectList(listTK, "Id", "Email", selectedTaiKhoanId); // giả sử TK có Email
-            ViewBag.TrangThaiList = new List<string> { "Chờ xử lý", "Đang giao", "Hoàn tất", "Đã huỷ" };
-        }
-
-        private void SetToast(string message, string type = "success")
-        {
-            TempData["ToastMessage"] = message;
-            TempData["ToastType"] = type;
+            try
+            {
+                _db.DonHangs.Remove(don); // cascade xóa chi tiết
+                await _db.SaveChangesAsync();
+                TempData["toast"] = "Đã xóa đơn hàng.";
+                TempData["toastType"] = "success";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["toast"] = "Không thể xóa: " + ex.Message;
+                TempData["toastType"] = "danger";
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }
