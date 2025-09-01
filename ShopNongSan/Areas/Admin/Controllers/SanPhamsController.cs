@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
-using ShopNongSan.Models;
 using System.IO;
 using Microsoft.AspNetCore.Authorization;
+using ShopNongSan.Models;
 
 namespace ShopNongSan.Areas.Admin.Controllers
 {
