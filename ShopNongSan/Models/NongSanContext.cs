@@ -25,6 +25,10 @@ public partial class NongSanContext : DbContext
 
     public virtual DbSet<DonHangChiTiet> DonHangChiTiets { get; set; }
 
+    public virtual DbSet<GioHang> GioHangs { get; set; }
+
+    public virtual DbSet<GioHangChiTiet> GioHangChiTiets { get; set; }
+
     public virtual DbSet<SanPham> SanPhams { get; set; }
 
     public virtual DbSet<TaiKhoan> TaiKhoans { get; set; }
@@ -35,7 +39,7 @@ public partial class NongSanContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=TUANKIETLEE\\SQLSERVERNEW;Database=NongSan;User ID=sa;Password=123;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=TUANKIETLEE\\SQLSERVERNEW;Database=NongSan;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -121,6 +125,34 @@ public partial class NongSanContext : DbContext
                 .HasForeignKey(d => d.SanPhamId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_DHCT_SanPham");
+        });
+
+        modelBuilder.Entity<GioHang>(entity =>
+        {
+            entity.ToTable("GioHang");
+
+            entity.Property(e => e.GhiChu).HasMaxLength(500);
+            entity.Property(e => e.NgayTao).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.TaiKhoan).WithMany(p => p.GioHangs)
+                .HasForeignKey(d => d.TaiKhoanId)
+                .HasConstraintName("FK_GioHang_TaiKhoan");
+        });
+
+        modelBuilder.Entity<GioHangChiTiet>(entity =>
+        {
+            entity.ToTable("GioHangChiTiet");
+
+            entity.Property(e => e.DonGia).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.GioHang).WithMany(p => p.GioHangChiTiets)
+                .HasForeignKey(d => d.GioHangId)
+                .HasConstraintName("FK_GHCT_GioHang");
+
+            entity.HasOne(d => d.SanPham).WithMany(p => p.GioHangChiTiets)
+                .HasForeignKey(d => d.SanPhamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GHCT_SanPham");
         });
 
         modelBuilder.Entity<SanPham>(entity =>
