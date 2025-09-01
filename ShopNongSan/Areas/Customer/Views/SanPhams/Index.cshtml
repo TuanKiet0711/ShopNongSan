@@ -13,10 +13,7 @@
 
 <h2 class="mb-4">Danh sách sản phẩm</h2>
 
-@if (TempData["msg"] != null)
-{
-    <div class="alert alert-success">@TempData["msg"]</div>
-}
+
 
 <form method="get" asp-area="Customer" asp-controller="SanPhams" asp-action="Index"
       class="filter-inline d-flex flex-wrap align-items-end mb-4">

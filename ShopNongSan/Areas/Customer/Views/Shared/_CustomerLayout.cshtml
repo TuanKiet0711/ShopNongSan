@@ -1,6 +1,7 @@
 ﻿@{
     Layout = null;
-    var q = Context.Request.Query["q"].ToString();
+    // Trùng với tham số lọc của bạn dùng "Q"
+    var q = Context.Request.Query["Q"].ToString();
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -93,7 +94,7 @@
                 @* Tìm nhanh (nếu cần) *@
                 @* <form class="d-flex ms-lg-3 flex-grow-1" method="get"
                 asp-area="Customer" asp-controller="SanPhams" asp-action="Index">
-                <input class="form-control" type="search" placeholder="Tìm kiếm sản phẩm..." name="q" value="@q" />
+                <input class="form-control" type="search" placeholder="Tìm kiếm sản phẩm..." name="Q" value="@q" />
                 <button class="btn btn-brand ms-2" type="submit">Tìm</button>
                 </form> *@
 
@@ -124,8 +125,17 @@
                     }
 
                     <li class="nav-item ms-lg-3">
-                        <a class="btn btn-outline-light" asp-area="Customer" asp-controller="GioHang" asp-action="Index">
+                        <a class="btn btn-outline-light position-relative"
+                           asp-area="Customer" asp-controller="GioHang" asp-action="Index">
                             <i class="bi bi-basket me-1"></i>Giỏ hàng
+                            @* Hiển thị badge số lượng nếu controller có set ViewBag.CartCount *@
+                            @if ((ViewBag.CartCount ?? 0) > 0)
+                            {
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    @ViewBag.CartCount
+                                    <span class="visually-hidden">sản phẩm trong giỏ</span>
+                                </span>
+                            }
                         </a>
                     </li>
 
@@ -145,7 +155,7 @@
         @RenderBody()
     </main>
 
-    <!-- FOOTER (giãn đều, không thừa khoảng trắng dưới) -->
+    <!-- FOOTER -->
     <footer class="bg-brand text-white mt-auto py-4">
         <div class="container">
             <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center text-center">
@@ -178,7 +188,6 @@
                         <a href="#" class="text-white fs-4"><i class="bi bi-youtube"></i></a>
                         <a href="#" class="text-white fs-4"><i class="bi bi-tiktok"></i></a>
                     </div>
-                   
                 </div>
             </div>
 
@@ -191,6 +200,33 @@
 
     <!-- JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    @* Toast góc phải trên, xuất hiện nếu controller set TempData["toast"] *@
+    @if (TempData["toast"] != null)
+    {
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080">
+            <div id="appToast" class="toast align-items-center text-white bg-@((string?)TempData["toastType"] ?? "success") border-0"
+                 role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @TempData["toast"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var el = document.getElementById('appToast');
+                if (el && typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                    var t = new bootstrap.Toast(el, { delay: 2500 });
+                    t.show();
+                }
+            });
+        </script>
+    }
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

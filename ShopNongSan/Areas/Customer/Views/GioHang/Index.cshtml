@@ -1,0 +1,125 @@
+﻿@model ShopNongSan.Models.ViewModels.GioHangVM
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<h2 class="mb-3">Giỏ hàng</h2>
+
+
+@if (Model.Items.Count == 0)
+{
+    <div class="alert alert-warning">Giỏ hàng đang trống.</div>
+    <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-primary">Tiếp tục mua sắm</a>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th style="width:70px">Ảnh</th>
+                    <th>Sản phẩm</th>
+                    <th class="text-end" style="width:140px">Đơn giá</th>
+                    <th class="text-center" style="width:220px">Số lượng</th>
+                    <th class="text-end" style="width:140px">Thành tiền</th>
+                    <th style="width:80px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var it in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <img src="@(string.IsNullOrEmpty(it.HinhAnh) ? Url.Content("~/images/no-image.png") : Url.Content(it.HinhAnh))"
+                                 style="width:60px;height:60px;object-fit:cover" />
+                        </td>
+                        <td>@it.TenSanPham</td>
+                        <td class="text-end">@it.DonGia.ToString("N0") đ</td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center align-items-center" style="gap:.25rem">
+                                <!-- Giảm 1 -->
+                                <form asp-area="Customer" asp-controller="GioHang" asp-action="Decrease" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@it.GioHangChiTietId" />
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit" title="Giảm">–</button>
+                                </form>
+
+                                <!-- Nhập số lượng trực tiếp -->
+                                <form asp-area="Customer" asp-controller="GioHang" asp-action="UpdateQty" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@it.GioHangChiTietId" />
+                                    <div class="input-group input-group-sm" style="width:110px">
+                                        <input type="number" min="1" name="qty" value="@it.SoLuong" class="form-control text-center" />
+                                        
+                                    </div>
+                                </form>
+
+                                <!-- Tăng 1 -->
+                                <form asp-area="Customer" asp-controller="GioHang" asp-action="Increase" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@it.GioHangChiTietId" />
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit" title="Tăng">+</button>
+                                </form>
+                            </div>
+                        </td>
+                        <td class="text-end">@it.ThanhTien.ToString("N0") đ</td>
+                        <td class="text-center">
+                            <form asp-area="Customer" asp-controller="GioHang" asp-action="Remove" method="post" onsubmit="return confirm('Xóa sản phẩm này khỏi giỏ?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@it.GioHangChiTietId" />
+                                <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Tổng cộng</th>
+                    <th class="text-end">@Model.TongTien.ToString("N0") đ</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-outline-secondary">Tiếp tục mua sắm</a>
+
+        <form asp-area="Customer" asp-controller="GioHang" asp-action="Clear" method="post" class="ms-auto"
+              onsubmit="return confirm('Bạn chắc muốn làm trống giỏ hàng?')">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger">Làm trống giỏ</button>
+        </form>
+
+        <a asp-area="Customer" asp-controller="ThanhToan" asp-action="Index" class="btn btn-success">Đặt hàng</a>
+    </div>
+}
+
+@* Toast CỤC BỘ (nếu bạn chưa đặt ở _Layout) *@
+@if (TempData["toast"] != null)
+{
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080">
+        <div id="cartToast" class="toast align-items-center text-white bg-@((string?)TempData["toastType"] ?? "success") border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @TempData["toast"]
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Hiển thị Bootstrap Toast nếu có (cục bộ)
+        document.addEventListener('DOMContentLoaded', function () {
+            var el = document.getElementById('cartToast');
+            if (el && typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                var t = new bootstrap.Toast(el, { delay: 2500 });
+                t.show();
+            }
+        });
+    </script>
+}
