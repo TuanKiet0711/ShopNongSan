@@ -29,7 +29,7 @@ builder.Services.AddDbContext<NongSanContext>(opt =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
-    options.AddPolicy("AdminOrStaff", p => p.RequireRole("Admin", "Staff")); // ? thêm
+    options.AddPolicy("AdminOrStaff", p => p.RequireRole("Admin", "Staff"));
     options.AddPolicy("CustomerOnly", p => p.RequireRole("Customer", "Admin"));
 });
 
@@ -49,27 +49,25 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 1) Route riêng cho Area Admin: CHO Admin & Staff
+// 1) Route riêng cho Area Admin
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
     pattern: "Admin/{controller=Home}/{action=Index}/{id?}"
-).RequireAuthorization("AdminOrStaff"); // ? ??i t? AdminOnly -> AdminOrStaff
+).RequireAuthorization("AdminOrStaff");
 
-// 2) Route chung cho các Area khác (n?u có)
+// 2) Route cho các Area khác
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-);
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// 3) Route m?c ??nh: ?u tiên Area Customer
+// 3) Route m?c ??nh (?u tiên Customer)
 app.MapControllerRoute(
     name: "customer_default",
     pattern: "{controller=SanPhams}/{action=Index}/{id?}",
-    defaults: new { area = "Customer" }
-);
+    defaults: new { area = "Customer" });
 
-// 4) "/" chuy?n th?ng v? Customer
-app.MapGet("/", () => Results.Redirect("/Customer/SanPhams"));
+// 4) "/" -> Trang ch? Customer/Home/Index
+app.MapGet("/", () => Results.Redirect("/Customer/Home"));
 
 app.Run();

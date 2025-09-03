@@ -1,7 +1,32 @@
 ﻿@{
     Layout = null;
-    // Trùng với tham số lọc của bạn dùng "Q"
-    var q = Context.Request.Query["Q"].ToString();
+
+    // Đọc query tìm kiếm (tham số Q) an toàn
+    var q = (Context?.Request?.Query["Q"].ToString() ?? string.Empty).Trim();
+
+    // Lấy số sp trong giỏ an toàn (dynamic -> int)
+    int cartCount = 0;
+    try
+    {
+        if (ViewBag?.CartCount is int c) cartCount = c;
+        else if (ViewBag?.CartCount != null) cartCount = Convert.ToInt32(ViewBag.CartCount);
+    }
+    catch { cartCount = 0; }
+
+    // Đọc loại toast & map sang lớp bg-* hợp lệ
+    string rawToastType = (TempData["toastType"]?.ToString() ?? "success").ToLowerInvariant();
+    string toastBgClass = rawToastType switch
+    {
+        "success" => "bg-success",
+        "danger" => "bg-danger",
+        "error" => "bg-danger",
+        "warning" => "bg-warning",
+        "info" => "bg-info",
+        "primary" => "bg-primary",
+        "secondary" => "bg-secondary",
+        "dark" => "bg-dark",
+        _ => "bg-success"
+    };
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -76,14 +101,16 @@
     </style>
 
     <link rel="stylesheet" href="~/css/site.css" />
+    @RenderSection("Head", required: false)
 </head>
 <body class="d-flex flex-column min-vh-100">
 
     <!-- HEADER -->
     <header class="bg-brand sticky-top">
         <nav class="navbar navbar-expand-lg navbar-dark container py-2">
+            <!-- Trang chủ: trỏ về Customer/Home/Index -->
             <a class="navbar-brand fw-bold text-white"
-               asp-area="Customer" asp-controller="SanPhams" asp-action="Index">Nông Sản Sạch</a>
+               asp-area="Customer" asp-controller="Home" asp-action="Index">Nông Sản Sạch</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#nav" aria-controls="nav" aria-expanded="false"
@@ -92,12 +119,26 @@
             </button>
 
             <div id="nav" class="collapse navbar-collapse">
-                @* Tìm nhanh (nếu cần) *@
+                <!-- Menu chính -->
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Customer" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house-door me-1"></i>Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Customer" asp-controller="SanPhams" asp-action="Index">
+                            <i class="bi bi-grid me-1"></i>Sản phẩm
+                        </a>
+                    </li>
+                </ul>
+
+                @* Form tìm nhanh (bật lại nếu muốn) *@
                 @* <form class="d-flex ms-lg-3 flex-grow-1" method="get"
-                asp-area="Customer" asp-controller="SanPhams" asp-action="Index">
-                <input class="form-control" type="search" placeholder="Tìm kiếm sản phẩm..." name="Q" value="@q" />
-                <button class="btn btn-brand ms-2" type="submit">Tìm</button>
-                </form> *@
+                        asp-area="Customer" asp-controller="SanPhams" asp-action="Index">
+                        <input class="form-control" type="search" placeholder="Tìm kiếm sản phẩm..." name="Q" value="@q" />
+                        <button class="btn btn-brand ms-2" type="submit">Tìm</button>
+                   </form> *@
 
                 <ul class="navbar-nav ms-auto align-items-lg-center mt-2 mt-lg-0">
                     @if (User?.Identity?.IsAuthenticated ?? false)
@@ -108,6 +149,7 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="Customer" asp-controller="DonHangs" asp-action="Index">Đơn hàng của tôi</a>
                         </li>
+
                         <li class="nav-item ms-lg-3">
                             <form asp-area="Customer" asp-controller="TaiKhoan" asp-action="DangXuat" method="post" class="mb-0">
                                 @Html.AntiForgeryToken()
@@ -129,11 +171,10 @@
                         <a class="btn btn-outline-light position-relative"
                            asp-area="Customer" asp-controller="GioHang" asp-action="Index">
                             <i class="bi bi-basket me-1"></i>Giỏ hàng
-                            @* Hiển thị badge số lượng nếu controller có set ViewBag.CartCount *@
-                            @if ((ViewBag.CartCount ?? 0) > 0)
+                            @if (cartCount > 0)
                             {
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    @ViewBag.CartCount
+                                    @cartCount
                                     <span class="visually-hidden">sản phẩm trong giỏ</span>
                                 </span>
                             }
@@ -184,10 +225,10 @@
                 <div class="col">
                     <h5 class="fw-bold mb-3">Kết nối với chúng tôi</h5>
                     <div class="d-flex justify-content-center gap-3 mb-3">
-                        <a href="#" class="text-white fs-4"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="text-white fs-4"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="text-white fs-4"><i class="bi bi-youtube"></i></a>
-                        <a href="#" class="text-white fs-4"><i class="bi bi-tiktok"></i></a>
+                        <a href="#" class="text-white fs-4" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white fs-4" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white fs-4" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                        <a href="#" class="text-white fs-4" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
                     </div>
                 </div>
             </div>
@@ -204,11 +245,11 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    @* Toast góc phải trên, xuất hiện nếu controller set TempData["toast"] *@
+    @* Toast góc phải trên *@
     @if (TempData["toast"] != null)
     {
         <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080">
-            <div id="appToast" class="toast align-items-center text-white bg-@((string?)TempData["toastType"] ?? "success") border-0"
+            <div id="appToast" class="toast align-items-center text-white @toastBgClass border-0"
                  role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
                     <div class="toast-body">
