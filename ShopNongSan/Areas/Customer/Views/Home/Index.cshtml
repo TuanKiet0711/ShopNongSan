@@ -1,562 +1,558 @@
 ﻿@model IEnumerable<ShopNongSan.Models.SanPham>
 @{
-	ViewData["Title"] = "Trang chủ";
-	Layout = "~/Areas/Customer/Views/Shared/_CustomerLayout.cshtml";
+    ViewData["Title"] = "Trang chủ";
+    Layout = "~/Areas/Customer/Views/Shared/_CustomerLayout.cshtml";
 }
 
 @section Head {
-	<style>
-		:root {
-			--brand-green: #2e7d32;
-			--brand-green-2: #1b5e20;
-			--brand-green-soft: #e8f5e9;
-			--gradient-primary: linear-gradient(135deg, #2e7d32, #4caf50, #66bb6a);
-			--gradient-overlay: linear-gradient(45deg, rgba(46, 125, 50, 0.8), rgba(76, 175, 80, 0.6));
-		}
+    <style>
+        :root {
+            --brand-green: #2e7d32;
+            --brand-green-2: #1b5e20;
+            --brand-green-soft: #e8f5e9;
+            --gradient-primary: linear-gradient(135deg, #2e7d32, #4caf50, #66bb6a);
+            --gradient-overlay: linear-gradient(45deg, rgba(46,125,50,.8), rgba(76,175,80,.6));
+        }
 
-		.hero-banner {
-			height: 70vh;
-			min-height: 500px;
-			background: url('/images/banner1.jpg') center center/cover no-repeat;
-			position: relative;
-			overflow: hidden;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			margin: -1.5rem -15px 0;
-		}
+        .hero-banner {
+            height: 70vh;
+            min-height: 500px;
+            background: url('/images/banner1.jpg') center/cover no-repeat;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: -1.5rem -15px 0;
+        }
 
+            .hero-banner::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: var(--gradient-overlay);
+                opacity: .5;
+            }
 
-			.hero-banner::before {
-				content: '';
-				position: absolute;
-				inset: 0;
-				background: var(--gradient-overlay);
-				opacity: 0.5; /* chỉnh độ mờ */
-			}
+        .hero-content {
+            text-align: center;
+            color: #fff;
+            z-index: 2;
+            position: relative;
+        }
 
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,.3);
+            animation: fadeInUp 1s ease-out;
+        }
 
-		.hero-content {
-			text-align: center;
-			color: white;
-			z-index: 2;
-			position: relative;
-		}
+        .hero-subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 2rem;
+            opacity: .95;
+            animation: fadeInUp 1s ease-out .2s both;
+        }
 
-		.hero-title {
-			font-size: 4rem;
-			font-weight: 800;
-			margin-bottom: 1rem;
-			text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-			animation: fadeInUp 1s ease-out;
-		}
+        .hero-btn {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            background: #fff;
+            color: var(--brand-green);
+            box-shadow: 0 8px 25px rgba(0,0,0,.2);
+            transition: .3s;
+            animation: fadeInUp 1s ease-out .4s both;
+        }
 
-		.hero-subtitle {
-			font-size: 1.4rem;
-			margin-bottom: 2rem;
-			opacity: 0.95;
-			animation: fadeInUp 1s ease-out 0.2s both;
-		}
+            .hero-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 35px rgba(0,0,0,.3);
+                color: var(--brand-green-2);
+            }
 
-		.hero-btn {
-			padding: 15px 40px;
-			font-size: 1.1rem;
-			font-weight: 600;
-			border: none;
-			border-radius: 50px;
-			background: white;
-			color: var(--brand-green);
-			box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-			transition: all 0.3s ease;
-			animation: fadeInUp 1s ease-out 0.4s both;
-		}
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
 
-			.hero-btn:hover {
-				transform: translateY(-3px);
-				box-shadow: 0 12px 35px rgba(0,0,0,0.3);
-				color: var(--brand-green-2);
-			}
+            .floating-shapes::before, .floating-shapes::after {
+                content: '';
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255,255,255,.1);
+                animation: float 6s ease-in-out infinite;
+            }
 
-		.floating-shapes {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			overflow: hidden;
-		}
+            .floating-shapes::before {
+                width: 100px;
+                height: 100px;
+                top: 20%;
+                left: 10%;
+                animation-delay: -2s;
+            }
 
-			.floating-shapes::before,
-			.floating-shapes::after {
-				content: '';
-				position: absolute;
-				border-radius: 50%;
-				background: rgba(255,255,255,0.1);
-				animation: float 6s ease-in-out infinite;
-			}
+            .floating-shapes::after {
+                width: 150px;
+                height: 150px;
+                bottom: 20%;
+                right: 10%;
+                animation-delay: -4s;
+            }
 
-			.floating-shapes::before {
-				width: 100px;
-				height: 100px;
-				top: 20%;
-				left: 10%;
-				animation-delay: -2s;
-			}
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
 
-			.floating-shapes::after {
-				width: 150px;
-				height: 150px;
-				bottom: 20%;
-				right: 10%;
-				animation-delay: -4s;
-			}
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-		@@keyframes fadeInUp {
-			from {
-				opacity: 0;
-				transform: translateY(30px);
-			}
+        @@keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0)
+            }
 
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		}
+            33% {
+                transform: translateY(-30px) rotate(120deg)
+            }
 
-		@@keyframes float {
-			0%, 100% {
-				transform: translateY(0px) rotate(0deg);
-			}
+            66% {
+                transform: translateY(15px) rotate(240deg)
+            }
+        }
 
-			33% {
-				transform: translateY(-30px) rotate(120deg);
-			}
+        .usp-card {
+            border: none;
+            border-radius: 20px;
+            padding: 2rem;
+            height: 100%;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,.1);
+            transition: .3s;
+            position: relative;
+            overflow: hidden;
+        }
 
-			66% {
-				transform: translateY(15px) rotate(240deg);
-			}
-		}
+            .usp-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 4px;
+                background: var(--gradient-primary);
+            }
 
-		.usp-card {
-			border: none;
-			border-radius: 20px;
-			padding: 2rem;
-			height: 100%;
-			background: white;
-			box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-			transition: all 0.3s ease;
-			position: relative;
-			overflow: hidden;
-		}
+            .usp-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 20px 40px rgba(0,0,0,.15);
+            }
 
-			.usp-card::before {
-				content: '';
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 4px;
-				background: var(--gradient-primary);
-			}
+        .usp-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: #fff;
+        }
 
-			.usp-card:hover {
-				transform: translateY(-10px);
-				box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-			}
+        .product-card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,.08);
+            transition: .3s;
+            height: 100%;
+            position: relative;
+        }
 
-		.usp-icon {
-			width: 80px;
-			height: 80px;
-			background: var(--gradient-primary);
-			border-radius: 50%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			margin: 0 auto 1.5rem;
-			font-size: 2rem;
-			color: white;
-		}
+            .product-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 8px 25px rgba(0,0,0,.15);
+            }
 
-		.product-card {
-			border: none;
-			border-radius: 20px;
-			overflow: hidden;
-			box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-			transition: all 0.3s ease;
-			height: 100%;
-		}
+        .product-img {
+            height: 220px;
+            width: 100%;
+            object-fit: cover;
+            transition: transform .3s;
+        }
 
-			.product-card:hover {
-				transform: translateY(-5px);
-				box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-			}
+        .product-card:hover .product-img {
+            transform: scale(1.05);
+        }
 
-		.product-img {
-			height: 200px;
-			object-fit: cover;
-			transition: transform 0.3s ease;
-		}
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--brand-green-2);
+            margin: 0 0 .25rem;
+            line-height: 1.3;
+            height: 2.6rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
 
-		.product-card:hover .product-img {
-			transform: scale(1.05);
-		}
+            .card-title.text-truncate {
+                white-space: normal;
+                text-overflow: clip;
+            }
 
-		.price-tag {
-			font-size: 1.2rem;
-			font-weight: 700;
-			color: var(--brand-green);
-			margin-bottom: 0.75rem;
-		}
+        .price-tag {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--brand-green);
+            margin: 0 0 .75rem;
+        }
 
-		/* Cập nhật styles cho buttons - giống trang Index */
-		.product-actions {
-			display: flex;
-			flex-direction: column;
-			gap: 0.5rem;
-			margin-top: auto;
-		}
+        .info-box {
+            font-size: .95rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
 
-		.btn-buy-now {
-			background: var(--gradient-primary);
-			border: none;
-			border-radius: 15px;
-			padding: 10px 15px;
-			color: white;
-			font-weight: 600;
-			transition: all 0.3s ease;
-			font-size: 0.9rem;
-		}
+            .info-box strong {
+                color: var(--brand-green-2);
+            }
 
-			.btn-buy-now:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
-				color: white;
-			}
+        .product-actions {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
 
-		.btn-add-cart {
-			border: 2px solid var(--brand-green);
-			color: var(--brand-green);
-			background: transparent;
-			border-radius: 15px;
-			padding: 8px 15px;
-			font-weight: 600;
-			transition: all 0.3s ease;
-			font-size: 0.9rem;
-		}
+        .btn-buy-now {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 15px;
+            padding: 12px 20px;
+            color: #fff;
+            font-weight: 600;
+            font-size: .95rem;
+            transition: .25s;
+        }
 
-			.btn-add-cart:hover {
-				background: var(--brand-green);
-				color: white;
-				transform: translateY(-2px);
-				box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
-			}
+            .btn-buy-now:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(46,125,50,.4);
+                color: #fff;
+            }
 
-		/* Loading states */
-		.btn-loading {
-			position: relative;
-			opacity: 0.7;
-		}
+        .btn-add-cart {
+            border: 2px solid var(--brand-green);
+            color: var(--brand-green);
+            background: transparent;
+            border-radius: 15px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: .95rem;
+            transition: .25s;
+        }
 
-			.btn-loading::after {
-				content: '';
-				position: absolute;
-				width: 16px;
-				height: 16px;
-				margin: auto;
-				border: 2px solid transparent;
-				border-top-color: currentColor;
-				border-radius: 50%;
-				animation: spin 1s linear infinite;
-				top: 0;
-				left: 0;
-				bottom: 0;
-				right: 0;
-			}
+            .btn-add-cart:hover {
+                background: var(--brand-green);
+                color: #fff;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(46,125,50,.3);
+            }
 
-		@@keyframes spin {
-			0% {
-				transform: rotate(0deg);
-			}
+        .btn-loading {
+            position: relative;
+            opacity: .7;
+        }
 
-			100% {
-				transform: rotate(360deg);
-			}
-		}
+            .btn-loading::after {
+                content: '';
+                position: absolute;
+                width: 16px;
+                height: 16px;
+                margin: auto;
+                border: 2px solid transparent;
+                border-top-color: currentColor;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                right: 0;
+            }
 
-		.section-title {
-			font-size: 2.5rem;
-			font-weight: 700;
-			color: var(--brand-green);
-			margin-bottom: 3rem;
-			position: relative;
-			padding-bottom: 15px;
-		}
+        @@keyframes spin {
+            0% {
+                transform: rotate(0)
+            }
 
-			.section-title::after {
-				content: '';
-				position: absolute;
-				bottom: 0;
-				left: 50%;
-				transform: translateX(-50%);
-				width: 100px;
-				height: 4px;
-				background: var(--gradient-primary);
-				border-radius: 2px;
-			}
+            100% {
+                transform: rotate(360deg)
+            }
+        }
 
-		.bg-soft {
-			background: linear-gradient(135deg, #f8f9fa, #e8f5e9);
-		}
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--brand-green);
+            margin-bottom: 3rem;
+            position: relative;
+            padding-bottom: 15px;
+        }
 
-		/* Toast container */
-		.toast-container {
-			z-index: 1080;
-		}
-	</style>
+            .section-title::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100px;
+                height: 4px;
+                background: var(--gradient-primary);
+                border-radius: 2px;
+            }
+
+        .bg-soft {
+            background: linear-gradient(135deg, #f8f9fa, #e8f5e9);
+        }
+    </style>
 }
 
 <!-- Hero Banner -->
 <section class="hero-banner">
-	<div class="floating-shapes"></div>
-	<div class="hero-content container">
-		<h1 class="hero-title">Nông Sản Sạch</h1>
-		<p class="hero-subtitle">Thực phẩm tươi ngon – An toàn cho mọi gia đình</p>
-		<a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="hero-btn btn">
-			<i class="bi bi-arrow-right-circle me-2"></i>
-			Khám phá ngay
-		</a>
-	</div>
+    <div class="floating-shapes"></div>
+    <div class="hero-content container">
+        <h1 class="hero-title">Nông Sản Sạch</h1>
+        <p class="hero-subtitle">Thực phẩm tươi ngon – An toàn cho mọi gia đình</p>
+        <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="hero-btn btn">
+            <i class="bi bi-arrow-right-circle me-2"></i>Khám phá ngay
+        </a>
+    </div>
 </section>
 
-<!-- USP Section -->
+<!-- USP -->
 <section class="py-5 bg-soft">
-	<div class="container">
-		<h2 class="section-title text-center">Tại sao chọn chúng tôi?</h2>
-		<div class="row g-4">
-			<div class="col-md-4">
-				<div class="usp-card text-center">
-					<div class="usp-icon">
-						<i class="bi bi-award"></i>
-					</div>
-					<h4 class="mb-3">Tươi – Sạch</h4>
-					<p class="text-muted">Chọn lọc từ nông trại uy tín, rõ nguồn gốc xuất xứ, đảm bảo chất lượng tốt nhất.</p>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<div class="usp-card text-center">
-					<div class="usp-icon">
-						<i class="bi bi-truck"></i>
-					</div>
-					<h4 class="mb-3">Giao nhanh</h4>
-					<p class="text-muted">Đặt online, giao tận nơi trong ngày. Đảm bảo sản phẩm tươi ngon khi đến tay bạn.</p>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<div class="usp-card text-center">
-					<div class="usp-icon">
-						<i class="bi bi-piggy-bank"></i>
-					</div>
-					<h4 class="mb-3">Giá hợp lý</h4>
-					<p class="text-muted">Ưu đãi thường xuyên, giá cả phải chăng, tiết kiệm chi phí cho gia đình.</p>
-				</div>
-			</div>
-		</div>
-	</div>
+    <div class="container">
+        <h2 class="section-title text-center">Tại sao chọn chúng tôi?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="usp-card text-center">
+                    <div class="usp-icon"><i class="bi bi-award"></i></div>
+                    <h4 class="mb-3">Tươi – Sạch</h4>
+                    <p class="text-muted">Chọn lọc từ nông trại uy tín, rõ nguồn gốc xuất xứ, đảm bảo chất lượng tốt nhất.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="usp-card text-center">
+                    <div class="usp-icon"><i class="bi bi-truck"></i></div>
+                    <h4 class="mb-3">Giao nhanh</h4>
+                    <p class="text-muted">Đặt online, giao tận nơi trong ngày. Đảm bảo sản phẩm tươi ngon khi đến tay bạn.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="usp-card text-center">
+                    <div class="usp-icon"><i class="bi bi-piggy-bank"></i></div>
+                    <h4 class="mb-3">Giá hợp lý</h4>
+                    <p class="text-muted">Ưu đãi thường xuyên, giá cả phải chăng, tiết kiệm chi phí cho gia đình.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 <!-- Sản phẩm nổi bật -->
 <section class="py-5">
-	<div class="container">
-		<div class="d-flex justify-content-between align-items-center mb-4">
-			<h2 class="h3 mb-0">Sản phẩm nổi bật</h2>
-			<a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-outline-success">
-				Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
-			</a>
-		</div>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 mb-0">Sản phẩm nổi bật</h2>
+            <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-outline-success">
+                Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
 
-		<div class="row g-4">
-			@if (Model != null && Model.Any())
-			{
-				foreach (var sp in Model.Take(8))
-				{
-					<div class="col-6 col-md-3">
-						<div class="product-card card">
-							<img src="@(string.IsNullOrEmpty(sp.HinhAnh) ? "/images/placeholder.png" : sp.HinhAnh)"
-								 class="product-img card-img-top" alt="@sp.Ten">
-							<div class="card-body d-flex flex-column">
-								<h6 class="card-title text-truncate" title="@sp.Ten">@sp.Ten</h6>
-								<div class="price-tag">@string.Format("{0:N0} đ", sp.Gia)</div>
+        <div class="row g-4">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var sp in Model.Take(8))
+                {
+                    <div class="col-6 col-md-3">
+                        <div class="product-card card">
+                            <img src="@(string.IsNullOrEmpty(sp.HinhAnh) ? "/images/placeholder.png" : sp.HinhAnh)"
+                                 class="product-img card-img-top" alt="@sp.Ten" />
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title text-truncate" title="@sp.Ten">@sp.Ten</h6>
+                                <div class="price-tag">@string.Format("{0:N0} đ", sp.Gia)</div>
 
-								<div class="product-actions">
-									<!-- Mua ngay -->
-									<form asp-area="Customer" asp-controller="DonHangs" asp-action="BuyNow" method="post" class="buy-now-form">
-										@Html.AntiForgeryToken()
-										<input type="hidden" name="id" value="@sp.Id" />
-										<input type="hidden" name="qty" value="1" />
-										<input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-										<button type="submit" class="btn btn-buy-now w-100">
-											<i class="bi bi-lightning-charge-fill me-1"></i>
-											Mua ngay
-										</button>
-									</form>
+                                <div class="info-box">
+                                    <div><strong>Danh mục:</strong> @(sp.DanhMuc?.Ten ?? "Đang cập nhật")</div>
+                                    <div><strong>Thương hiệu:</strong> @(sp.ThuongHieu?.Ten ?? "Đang cập nhật")</div>
+                                </div>
 
-									<!-- Thêm vào giỏ -->
-									<form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post" class="add-cart-form">
-										@Html.AntiForgeryToken()
-										<input type="hidden" name="id" value="@sp.Id" />
-										<input type="hidden" name="qty" value="1" />
-										<input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-										<button type="submit" class="btn btn-add-cart w-100">
-											<i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ
-										</button>
-									</form>
-								</div>
-							</div>
-						</div>
-					</div>
-				}
-			}
-			else
-			{
-				<!-- Sản phẩm demo khi không có dữ liệu -->
-				<div class="col-6 col-md-3">
-					<div class="product-card card">
-						<img src="/images/placeholder.png" class="product-img card-img-top" alt="Demo">
-						<div class="card-body d-flex flex-column">
-							<h6 class="card-title">Đang cập nhật sản phẩm...</h6>
-							<div class="price-tag">0 đ</div>
-							<div class="product-actions">
-								<button class="btn btn-buy-now w-100" disabled>
-									<i class="bi bi-lightning-charge-fill me-1"></i>Sắp có hàng
-								</button>
-								<button class="btn btn-add-cart w-100" disabled>
-									<i class="bi bi-cart-plus me-1"></i>Sắp có hàng
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			}
-		</div>
-	</div>
+                                <div class="mt-auto d-flex flex-column gap-3">
+                                    <!-- Mua ngay (giữ submit thường) -->
+                                    <form asp-area="Customer" asp-controller="DonHangs" asp-action="BuyNow" method="post" class="buy-now-form">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@sp.Id" />
+                                        <input type="hidden" name="qty" value="1" />
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <button type="submit" class="btn btn-buy-now w-100">
+                                            <i class="bi bi-lightning-charge-fill me-1"></i>Mua ngay
+                                        </button>
+                                    </form>
+
+                                    <!-- Thêm vào giỏ (AJAX) -->
+                                    <form asp-area="Customer" asp-controller="GioHang" asp-action="AddAjax"
+                                          method="post" class="add-cart-form" data-ajax="true">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@sp.Id" />
+                                        <input type="hidden" name="qty" value="1" />
+                                        <button type="submit" class="btn btn-add-cart w-100">
+                                            <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-2" style="color:#2e7d32"></i>
+                    Chưa có sản phẩm để hiển thị
+                </div>
+            }
+        </div>
+    </div>
 </section>
 
-<!-- Toast Container -->
-<div class="toast-container position-fixed top-0 end-0 p-3"></div>
-
 @section Scripts {
-	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-			// Smooth scroll cho button hero
-			const heroBtn = document.querySelector('.hero-btn');
-			if (heroBtn && heroBtn.getAttribute('href') === '#') {
-				heroBtn.addEventListener('click', function(e) {
-					e.preventDefault();
-					document.querySelector('.py-5').scrollIntoView({
-						behavior: 'smooth'
-					});
-				});
-			}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
 
-			// Animation khi scroll
-			const observer = new IntersectionObserver((entries) => {
-				entries.forEach(entry => {
-					if (entry.isIntersecting) {
-						entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
-					}
-				});
-			}, { threshold: 0.1 });
+          // Smooth scroll hero nếu href="#"
+          const heroBtn = document.querySelector('.hero-btn');
+          if (heroBtn && heroBtn.getAttribute('href') === '#') {
+            heroBtn.addEventListener('click', function (e) {
+              e.preventDefault();
+              document.querySelector('.py-5').scrollIntoView({ behavior: 'smooth' });
+            });
+          }
 
-			document.querySelectorAll('.usp-card, .product-card').forEach(card => {
-				observer.observe(card);
-			});
+          // Intersection animations
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
+              }
+            });
+          }, { threshold: 0.1 });
+          document.querySelectorAll('.usp-card, .product-card').forEach(card => observer.observe(card));
 
-			// Xử lý form submit với loading states
-			document.querySelectorAll('.buy-now-form, .add-cart-form').forEach(form => {
-				form.addEventListener('submit', function(e) {
-					const button = form.querySelector('button[type="submit"]');
-					const originalHtml = button.innerHTML;
+          // Loading state cho tất cả form
+          document.querySelectorAll('.buy-now-form, .add-cart-form').forEach(form => {
+            form.addEventListener('submit', function () {
+              const button = form.querySelector('button[type="submit"]');
+              if (!button) return;
+              const originalHtml = button.innerHTML;
+              button.classList.add('btn-loading');
+              button.disabled = true;
+              const isBuyNow = form.classList.contains('buy-now-form');
+              const loadingText = isBuyNow
+                ? '<i class="bi bi-hourglass-split me-1"></i>Đang xử lý...'
+                : '<i class="bi bi-hourglass-split me-1"></i>Đang thêm...';
+              button.innerHTML = loadingText;
+              setTimeout(() => {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+                button.innerHTML = originalHtml;
+              }, 3000);
+            });
+          });
 
-					// Thêm loading state
-					button.classList.add('btn-loading');
-					button.disabled = true;
+          // ✅ AJAX cho form Thêm giỏ
+          document.querySelectorAll('.add-cart-form[data-ajax="true"]').forEach(form => {
+            form.addEventListener('submit', async function (e) {
+              e.preventDefault();
 
-					const isBuyNow = form.classList.contains('buy-now-form');
-					const loadingText = isBuyNow ?
-						'<i class="bi bi-hourglass-split me-1"></i>Đang xử lý...' :
-						'<i class="bi bi-hourglass-split me-1"></i>Đang thêm...';
+              const btn = form.querySelector('button[type="submit"]');
+              const originalHtml = btn ? btn.innerHTML : null;
+              if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
 
-					button.innerHTML = loadingText;
+              try {
+                const tokenInput = form.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : null;
+                const url = form.getAttribute('action') || '@Url.Action("AddAjax", "GioHang", new { area = "Customer" })';
 
-					// Reset sau khi form submit (trong trường hợp có lỗi validation)
-					setTimeout(() => {
-						button.classList.remove('btn-loading');
-						button.disabled = false;
-						button.innerHTML = originalHtml;
-					}, 3000);
-				});
-			});
+                const fd = new FormData(form);
 
-			// Hiển thị toast nếu có thông báo từ server
-		@if (TempData["toast"] != null)
-		{
-			<text>
-							showToast('@Html.Raw(TempData["toast"])', '@(TempData["toastType"] ?? "info")');
-			</text>
-		}
+                const res = await fetch(url, {
+                  method: 'POST',
+                  headers: token ? { 'RequestVerificationToken': token } : {},
+                  body: fd
+                });
 
-		@if (TempData["msg"] != null)
-		{
-			<text>
-							showToast('@Html.Raw(TempData["msg"])', 'info');
-			</text>
-		}
-		});
+                const data = await res.json();
 
-		// Hiển thị toast notification
-		function showToast(message, type) {
-			const toastContainer = document.querySelector('.toast-container') || createToastContainer();
-			const toast = createToast(message, type);
-			toastContainer.appendChild(toast);
+                if (!res.ok || !data || data.ok !== true) {
+                  const msg = (data && data.message) ? data.message : 'Có lỗi xảy ra khi thêm vào giỏ.';
+                  if (window.showToast) showToast(msg, 'danger');
+                } else {
+                  updateCartBadge(data.cartCount);
+                  if (window.showToast) showToast(data.message, 'success');
+                }
+              } catch (err) {
+                if (window.showToast) showToast('Không thể kết nối máy chủ.', 'danger');
+              } finally {
+                if (btn && originalHtml != null) {
+                  btn.classList.remove('btn-loading');
+                  btn.disabled = false;
+                  btn.innerHTML = originalHtml;
+                }
+              }
+            });
+          });
 
-			const bsToast = new bootstrap.Toast(toast, { delay: 4000 });
-			bsToast.show();
+          // Cập nhật badge giỏ hàng ở navbar
+          function updateCartBadge(count) {
+            // Tìm nút giỏ hàng đã render (ưu tiên id nếu bạn gán ở layout)
+            let cartBtn = document.getElementById('cart-link');
+            if (!cartBtn) cartBtn = document.querySelector('a[href*="/Customer/GioHang"]');
+            if (!cartBtn) cartBtn = document.querySelector('a:has(> i.bi-basket)');
+            if (!cartBtn) return;
 
-			// Xóa toast sau khi ẩn
-			toast.addEventListener('hidden.bs.toast', () => {
-				toast.remove();
-			});
-		}
+            let badge = cartBtn.querySelector('.badge.rounded-pill');
+            if (!badge) {
+              badge = document.createElement('span');
+              badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+              cartBtn.appendChild(badge);
+            }
 
-		function createToastContainer() {
-			const container = document.createElement('div');
-			container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-			container.style.zIndex = '1080';
-			document.body.appendChild(container);
-			return container;
-		}
-
-		function createToast(message, type) {
-			const bgClass = type === 'success' ? 'bg-success text-white' :
-						   type === 'danger' ? 'bg-danger text-white' :
-						   type === 'warning' ? 'bg-warning text-dark' :
-						   'bg-info text-white';
-
-			const iconClass = type === 'success' ? 'bi-check-circle-fill' :
-							 type === 'danger' ? 'bi-exclamation-triangle-fill' :
-							 type === 'warning' ? 'bi-exclamation-circle-fill' :
-							 'bi-info-circle-fill';
-
-			const toast = document.createElement('div');
-			toast.className = `toast align-items-center ${bgClass} border-0`;
-			toast.setAttribute('role', 'alert');
-			toast.innerHTML = `
-				<div class="d-flex">
-					<div class="toast-body">
-						<i class="bi ${iconClass} me-2"></i>${message}
-					</div>
-					<button type="button" class="btn-close ${type === 'warning' ? '' : 'btn-close-white'} me-2 m-auto" data-bs-dismiss="toast"></button>
-				</div>
-			`;
-			return toast;
-		}
-	</script>
+            if (count && count > 0) {
+              badge.textContent = count;
+              badge.style.display = '';
+            } else {
+              badge.textContent = '';
+              badge.style.display = 'none';
+            }
+          }
+        });
+    </script>
 }

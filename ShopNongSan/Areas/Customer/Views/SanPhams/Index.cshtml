@@ -55,19 +55,19 @@
         .form-label {
             font-weight: 600;
             color: var(--brand-green-2);
-            margin-bottom: 0.5rem;
+            margin-bottom: .5rem;
         }
 
         .form-control, .form-select {
             border-radius: 10px;
             border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-            padding: 0.75rem 1rem;
+            transition: .3s;
+            padding: .75rem 1rem;
         }
 
             .form-control:focus, .form-select:focus {
                 border-color: var(--brand-green);
-                box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+                box-shadow: 0 0 0 .2rem rgba(46,125,50,.25);
             }
 
         .btn-filter {
@@ -75,16 +75,16 @@
             border: none;
             border-radius: 25px;
             padding: 12px 30px;
-            color: white;
+            color: #fff;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: .3s;
             box-shadow: var(--shadow-soft);
         }
 
             .btn-filter:hover {
                 transform: translateY(-2px);
                 box-shadow: var(--shadow-hover);
-                color: white;
+                color: #fff;
             }
 
         .btn-clear {
@@ -93,17 +93,17 @@
             border-radius: 25px;
             padding: 10px 25px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: .3s;
             background: transparent;
         }
 
             .btn-clear:hover {
                 background: var(--brand-green);
-                color: white;
+                color: #fff;
                 transform: translateY(-2px);
             }
 
-        /* Product Cards Styling */
+        /* Product Cards */
         .products-container {
             margin-top: 2rem;
         }
@@ -113,9 +113,9 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: var(--shadow-soft);
-            transition: all 0.3s ease;
+            transition: .3s;
             height: 100%;
-            background: white;
+            background: #fff;
             position: relative;
         }
 
@@ -127,7 +127,7 @@
         .product-image {
             height: 220px;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            transition: transform .3s;
             width: 100%;
         }
 
@@ -139,7 +139,7 @@
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: .75rem;
         }
 
         .product-title {
@@ -163,7 +163,7 @@
         }
 
         .product-meta {
-            font-size: 0.9rem;
+            font-size: .9rem;
             color: #6c757d;
             line-height: 1.4;
         }
@@ -177,7 +177,7 @@
             padding-top: 1rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: .75rem;
         }
 
         .btn-buy-now {
@@ -185,16 +185,16 @@
             border: none;
             border-radius: 15px;
             padding: 12px 20px;
-            color: white;
+            color: #fff;
             font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
+            transition: .3s;
+            font-size: .95rem;
         }
 
             .btn-buy-now:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
-                color: white;
+                box-shadow: 0 5px 15px rgba(46,125,50,.4);
+                color: #fff;
             }
 
         .btn-add-cart {
@@ -204,18 +204,18 @@
             border-radius: 15px;
             padding: 10px 20px;
             font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
+            transition: .25s;
+            font-size: .95rem;
         }
 
             .btn-add-cart:hover {
                 background: var(--brand-green);
-                color: white;
+                color: #fff;
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+                box-shadow: 0 5px 15px rgba(46,125,50,.3);
             }
 
-        /* Select2 Customization */
+        /* Select2 */
         .select2-container .select2-results__options {
             max-height: 200px !important;
         }
@@ -224,7 +224,7 @@
             height: calc(1.5em + 1.5rem + 4px) !important;
             border-radius: 10px !important;
             border: 2px solid #e9ecef !important;
-            padding: 0.75rem 1rem;
+            padding: .75rem 1rem;
             display: flex;
             align-items: center;
         }
@@ -236,7 +236,7 @@
 
         .select2-container--default.select2-container--focus .select2-selection--single {
             border-color: var(--brand-green) !important;
-            box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+            box-shadow: 0 0 0 .2rem rgba(46,125,50,.25);
         }
 
         .select2-dropdown {
@@ -245,10 +245,10 @@
             box-shadow: var(--shadow-hover);
         }
 
-        /* Page Header */
+        /* Header */
         .page-header {
             background: var(--gradient-primary);
-            color: white;
+            color: #fff;
             padding: 2rem 0;
             margin: -1.5rem -15px 2rem;
             text-align: center;
@@ -259,24 +259,21 @@
             .page-header::before {
                 content: '';
                 position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
+                inset: 0;
                 background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="1.5" fill="white" opacity="0.08"/></svg>');
-                opacity: 0.3;
+                opacity: .3;
             }
 
         .page-title {
             font-size: 2.5rem;
             font-weight: 800;
             margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 4px rgba(0,0,0,.2);
             position: relative;
             z-index: 2;
         }
 
-        /* Empty State */
+        /* Empty */
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
@@ -289,52 +286,45 @@
                 margin-bottom: 1rem;
             }
 
-        /* Responsive Design */
         @@media (max-width: 992px) {
-            .filter-inline .fi
+            .filter-inline .fi {
+                min-width: 140px;
+            }
 
-        {
-            min-width: 140px;
-        }
+            .fi.keyword {
+                min-width: 200px;
+            }
 
-        .fi.keyword {
-            min-width: 200px;
-        }
+            .page-title {
+                font-size: 2rem;
+            }
 
-        .page-title {
-            font-size: 2rem;
-        }
-
-        .filter-container {
-            padding: 1.5rem;
-        }
-
+            .filter-container {
+                padding: 1.5rem;
+            }
         }
 
         @@media (max-width: 768px) {
-            .filter-inline
+            .filter-inline {
+                flex-direction: column;
+            }
 
-        {
-            flex-direction: column;
+                .filter-inline .fi {
+                    min-width: 100%;
+                }
+
+            .page-header {
+                padding: 1.5rem 0;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
         }
 
-        .filter-inline .fi {
-            min-width: 100%;
-        }
-
-        .page-header {
-            padding: 1.5rem 0;
-        }
-
-        .page-title {
-            font-size: 1.8rem;
-        }
-
-        }
-
-        /* Loading Animation */
+        /* Loading */
         .loading {
-            opacity: 0.6;
+            opacity: .6;
             pointer-events: none;
         }
 
@@ -352,23 +342,17 @@
                 border-top-color: currentColor;
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                right: 0;
+                inset: 0;
             }
 
         @@keyframes spin {
-            0%
+            0% {
+                transform: rotate(0)
+            }
 
-        {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-
+            100% {
+                transform: rotate(360deg)
+            }
         }
     </style>
 }
@@ -376,52 +360,38 @@
 <!-- Page Header -->
 <div class="page-header">
     <div class="container">
-        <h1 class="page-title">
-            <i class="bi bi-grid me-3"></i>Danh sách sản phẩm
-        </h1>
+        <h1 class="page-title"><i class="bi bi-grid me-3"></i>Danh sách sản phẩm</h1>
     </div>
 </div>
 
 <!-- Filter Section -->
 <div class="filter-container">
-    <h3 class="filter-title">
-        <i class="bi bi-funnel"></i>
-        Bộ lọc sản phẩm
-    </h3>
+    <h3 class="filter-title"><i class="bi bi-funnel"></i>Bộ lọc sản phẩm</h3>
 
     <form method="get" asp-area="Customer" asp-controller="SanPhams" asp-action="Index"
           class="filter-inline d-flex flex-wrap align-items-end" id="filterForm">
 
         <div class="fi keyword">
-            <label class="form-label">
-                <i class="bi bi-search me-1"></i>Từ khóa
-            </label>
-            <input type="text" name="Q" value="@(filter.Q ?? "")"
-                   class="form-control" placeholder="Nhập tên sản phẩm...">
+            <label class="form-label"><i class="bi bi-search me-1"></i>Từ khóa</label>
+            <input type="text" name="Q" value="@(filter.Q ?? "")" class="form-control" placeholder="Nhập tên sản phẩm...">
         </div>
 
         <div class="fi">
-            <label class="form-label">
-                <i class="bi bi-tags me-1"></i>Danh mục
-            </label>
+            <label class="form-label"><i class="bi bi-tags me-1"></i>Danh mục</label>
             <select name="DanhMucId" class="form-select js-select2" asp-items="ViewBag.DanhMucList" data-placeholder="-- Tất cả danh mục --">
                 <option value="">-- Tất cả danh mục --</option>
             </select>
         </div>
 
         <div class="fi">
-            <label class="form-label">
-                <i class="bi bi-award me-1"></i>Thương hiệu
-            </label>
+            <label class="form-label"><i class="bi bi-award me-1"></i>Thương hiệu</label>
             <select name="ThuongHieuId" class="form-select js-select2" asp-items="ViewBag.ThuongHieuList" data-placeholder="-- Tất cả thương hiệu --">
                 <option value="">-- Tất cả thương hiệu --</option>
             </select>
         </div>
 
         <div class="fi">
-            <label class="form-label">
-                <i class="bi bi-sort-down me-1"></i>Sắp xếp
-            </label>
+            <label class="form-label"><i class="bi bi-sort-down me-1"></i>Sắp xếp</label>
             <select name="Sort" class="form-select">
                 <option value="" selected="@(string.IsNullOrEmpty(filter.Sort))">Theo tên (A→Z)</option>
                 <option value="price_asc" selected="@(filter.Sort == "price_asc")">Giá: Thấp → Cao</option>
@@ -433,47 +403,33 @@
         <!-- Price Range -->
         <div class="w-100 d-flex flex-wrap gap-3 mt-3">
             <div class="fi" style="min-width: 160px;">
-                <label class="form-label">
-                    <i class="bi bi-currency-exchange me-1"></i>Giá từ
-                </label>
+                <label class="form-label"><i class="bi bi-currency-exchange me-1"></i>Giá từ</label>
                 <div class="input-group">
-                    <input type="text" name="GiaMinStr"
-                           value="@(filter.GiaMinStr ?? "")"
-                           class="form-control vnd-only"
-                           placeholder="0"
-                           inputmode="numeric">
+                    <input type="text" name="GiaMinStr" value="@(filter.GiaMinStr ?? "")" class="form-control vnd-only" placeholder="0" inputmode="numeric">
                     <span class="input-group-text">đ</span>
                 </div>
             </div>
-
             <div class="fi" style="min-width: 160px;">
                 <label class="form-label">đến</label>
                 <div class="input-group">
-                    <input type="text" name="GiaMaxStr"
-                           value="@(filter.GiaMaxStr ?? "")"
-                           class="form-control vnd-only"
-                           placeholder="999,999,999"
-                           inputmode="numeric">
+                    <input type="text" name="GiaMaxStr" value="@(filter.GiaMaxStr ?? "")" class="form-control vnd-only" placeholder="999,999,999" inputmode="numeric">
                     <span class="input-group-text">đ</span>
                 </div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="d-flex align-items-end gap-3 mt-3">
             <button type="submit" class="btn btn-filter" id="filterBtn">
-                <i class="bi bi-funnel-fill me-2"></i>
-                Áp dụng lọc
+                <i class="bi bi-funnel-fill me-2"></i>Áp dụng lọc
             </button>
             <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-clear">
-                <i class="bi bi-arrow-clockwise me-2"></i>
-                Xóa bộ lọc
+                <i class="bi bi-arrow-clockwise me-2"></i>Xóa bộ lọc
             </a>
         </div>
     </form>
 </div>
 
-<!-- Products Container -->
+<!-- Products -->
 <div class="products-container">
     <div class="row g-4" id="sanpham">
         @if (Model != null && Model.Any())
@@ -489,10 +445,7 @@
 
                         <div class="card-body">
                             <h5 class="product-title" title="@sp.Ten">@sp.Ten</h5>
-
-                            <div class="product-price">
-                                @sp.Gia.ToString("N0") đ
-                            </div>
+                            <div class="product-price">@sp.Gia.ToString("N0") đ</div>
 
                             <div class="product-meta">
                                 <div><strong>Danh mục:</strong> @(sp.DanhMuc?.Ten ?? "Chưa phân loại")</div>
@@ -503,26 +456,25 @@
                             </div>
 
                             <div class="product-actions">
-                                <!-- Mua ngay -->
-                                <form asp-area="Customer" asp-controller="DonHangs" asp-action="BuyNow" method="post">
+                                <!-- Mua ngay (submit thường) -->
+                                <form asp-area="Customer" asp-controller="DonHangs" asp-action="BuyNow" method="post" class="buy-now-form">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@sp.Id" />
                                     <input type="hidden" name="qty" value="1" />
                                     <input type="hidden" name="returnUrl" value="@(Context?.Request?.Path + Context?.Request?.QueryString)" />
                                     <button type="submit" class="btn btn-buy-now w-100">
-                                        <i class="bi bi-lightning-charge-fill me-2"></i>
-                                        Mua ngay
+                                        <i class="bi bi-lightning-charge-fill me-2"></i>Mua ngay
                                     </button>
                                 </form>
 
-                                <!-- Thêm vào giỏ -->
-                                <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
+                                <!-- Thêm vào giỏ (AJAX) -->
+                                <form asp-area="Customer" asp-controller="GioHang" asp-action="AddAjax" method="post"
+                                      class="add-cart-form" data-ajax="true">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@sp.Id" />
                                     <input type="hidden" name="qty" value="1" />
                                     <button type="submit" class="btn btn-add-cart w-100">
-                                        <i class="bi bi-cart-plus me-2"></i>
-                                        Thêm vào giỏ
+                                        <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
                                     </button>
                                 </form>
                             </div>
@@ -539,8 +491,7 @@
                     <h4>Không tìm thấy sản phẩm nào</h4>
                     <p>Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                     <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-filter">
-                        <i class="bi bi-arrow-clockwise me-2"></i>
-                        Xem tất cả sản phẩm
+                        <i class="bi bi-arrow-clockwise me-2"></i>Xem tất cả sản phẩm
                     </a>
                 </div>
             </div>
@@ -553,94 +504,97 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        $(document).ready(function() {
-            // Format số theo vi-VN
+        // Keyframes cho fadeInUp
+        (function appendKeyframes(){ const s=document.createElement('style'); s.textContent=`@@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}`; document.head.appendChild(s); })();
+
+        $(function () {
+            // Number formatting vi-VN
             const nf = new Intl.NumberFormat('vi-VN');
+            function formatNumeric(el){ const digits=(el.value||"").replace(/\D+/g,""); el.value = digits ? nf.format(parseInt(digits,10)) : ""; }
+            document.querySelectorAll(".vnd-only").forEach(el => { el.addEventListener("input", () => formatNumeric(el)); if (el.value) formatNumeric(el); });
 
-            function formatNumeric(el) {
-                const digits = (el.value || "").replace(/\D+/g, "");
-                el.value = digits ? nf.format(parseInt(digits, 10)) : "";
-            }
+            // Select2
+            $('.js-select2').select2({ width:'100%', placeholder: function(){ return $(this).data('placeholder') || '-- Tất cả --'; }, allowClear:true, minimumResultsForSearch:3 });
 
-            // Áp dụng format cho input giá
-            document.querySelectorAll(".vnd-only").forEach(el => {
-                el.addEventListener("input", () => formatNumeric(el));
-                if (el.value) formatNumeric(el);
-            });
-
-            // Khởi tạo Select2
-            $('.js-select2').select2({
-                width: '100%',
-                placeholder: function() {
-                    return $(this).data('placeholder') || '-- Tất cả --';
-                },
-                allowClear: true,
-                minimumResultsForSearch: 3
-            });
-
-            // Form submit với loading state
-            $('#filterForm').on('submit', function() {
+            // Filter button loading (chỉ UX nhẹ, có thể bỏ)
+            $('#filterForm').on('submit', function () {
                 const $btn = $('#filterBtn');
                 $btn.addClass('btn-loading').prop('disabled', true);
                 $btn.find('i').removeClass('bi-funnel-fill').addClass('d-none');
                 $btn.append('<span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>');
-
-                // Simulate loading (remove in production)
-                setTimeout(() => {
-                    $btn.removeClass('btn-loading').prop('disabled', false);
-                    $btn.find('.spinner-border').remove();
-                    $btn.find('i').addClass('bi-funnel-fill').removeClass('d-none');
-                }, 1000);
             });
 
-            // Button loading states for product actions
-            $('form[asp-action="BuyNow"], form[asp-action="Add"]').on('submit', function(e) {
-                const $btn = $(this).find('button[type="submit"]');
-                $btn.addClass('btn-loading').prop('disabled', true);
-
-                // Add loading text
-                const originalText = $btn.html();
-                const loadingText = $btn.hasClass('btn-buy-now') ?
-                    '<i class="bi bi-hourglass-split me-2"></i>Đang xử lý...' :
-                    '<i class="bi bi-hourglass-split me-2"></i>Đang thêm...';
-
-                $btn.html(loadingText);
-
-                // Reset after delay (for demo purposes)
-                setTimeout(() => {
-                    $btn.removeClass('btn-loading').prop('disabled', false).html(originalText);
-                }, 2000);
-            });
-
-            // Smooth animations on scroll
+            // Intersection animation cho card
             const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.animationDelay = `${Math.random() * 0.3}s`;
-                        entry.target.style.animation = 'fadeInUp 0.6s ease-out forwards';
-                    }
-                });
+                entries.forEach(e => { if (e.isIntersecting) { e.target.style.animationDelay = `${Math.random()*0.3}s`; e.target.style.animation = 'fadeInUp .6s ease-out forwards'; }});
             }, { threshold: 0.1 });
+            document.querySelectorAll('.product-card').forEach(card => observer.observe(card));
 
-            document.querySelectorAll('.product-card').forEach(card => {
-                observer.observe(card);
+            // Loading state nút submit
+            $('form.buy-now-form, form.add-cart-form').on('submit', function () {
+                const $btn = $(this).find('button[type="submit"]');
+                if (!$btn.length) return;
+                const isBuyNow = $btn.hasClass('btn-buy-now');
+                $btn.addClass('btn-loading').prop('disabled', true).data('__orig', $btn.html());
+                $btn.html(isBuyNow ? '<i class="bi bi-hourglass-split me-2"></i>Đang xử lý...' : '<i class="bi bi-hourglass-split me-2"></i>Đang thêm...');
             });
-        });
 
-        // Add CSS animation keyframes
-        const style = document.createElement('style');
-        style.textContent = `
-            @@keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(30px);
+            // ✅ AJAX cho Thêm giỏ (không reload)
+            $('form.add-cart-form[data-ajax="true"]').on('submit', async function (e) {
+                e.preventDefault();
+                const form = this;
+                const $btn = $(form).find('button[type="submit"]');
+
+                try {
+                    const token = $(form).find('input[name="__RequestVerificationToken"]').val();
+                    const url = form.getAttribute('action') || '@Url.Action("AddAjax", "GioHang", new { area = "Customer" })';
+                    const fd = new FormData(form);
+
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: token ? { 'RequestVerificationToken': token } : {},
+                        body: fd
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok || !data || data.ok !== true) {
+                        const msg = (data && data.message) ? data.message : 'Có lỗi xảy ra khi thêm vào giỏ.';
+                        if (window.showToast) showToast(msg, 'danger');
+                    } else {
+                        updateCartBadge(data.cartCount);
+                        if (window.showToast) showToast(data.message, 'success');
+                    }
+                } catch (err) {
+                    if (window.showToast) showToast('Không thể kết nối máy chủ.', 'danger');
+                } finally {
+                    if ($btn.length) {
+                        const orig = $btn.data('__orig');
+                        $btn.removeClass('btn-loading').prop('disabled', false);
+                        if (orig) $btn.html(orig);
+                    }
                 }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
+            });
+
+            // Cập nhật badge giỏ ở navbar (layout có #cart-link)
+            function updateCartBadge(count){
+                const cartBtn = document.getElementById('cart-link')
+                               || document.querySelector('a[href*="/Customer/GioHang"]')
+                               || document.querySelector('a:has(> i.bi-basket)');
+                if (!cartBtn) return;
+                let badge = cartBtn.querySelector('.badge.rounded-pill');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                    cartBtn.appendChild(badge);
+                }
+                if (count && count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = '';
+                } else {
+                    badge.textContent = '';
+                    badge.style.display = 'none';
                 }
             }
-        `;
-        document.head.appendChild(style);
+        });
     </script>
 }

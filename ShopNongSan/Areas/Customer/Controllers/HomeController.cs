@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Areas/Customer/Controllers/HomeController.cs
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Models;
 using System.Threading.Tasks;
@@ -16,11 +17,13 @@ namespace ShopNongSan.Areas.Customer.Controllers
             _context = context;
         }
 
-        // Trang chủ: có thể show 8 sản phẩm mới / nổi bật
+        // Trang chủ: show 8 sp mới
         public async Task<IActionResult> Index()
         {
             var sanPhamMoi = await _context.SanPhams
                 .AsNoTracking()
+                .Include(x => x.DanhMuc)       // <<< thêm
+                .Include(x => x.ThuongHieu)    // <<< thêm
                 .OrderByDescending(x => x.Id)
                 .Take(8)
                 .ToListAsync();
