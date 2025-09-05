@@ -1,0 +1,33 @@
+﻿/* Sidebar xanh lá nhạt */
+.sidebar {
+    background-color: #4CAF50 !important; /* xanh lá nhạt */
+    color: #fff !important;
+}
+
+/* Content nền trắng */
+main.content,
+.content {
+    background-color: #ffffff !important; /* trắng */
+    color: #000000 !important; /* chữ đen */
+}
+
+    /* Toàn bộ chữ trong content */
+    main.content *,
+    .content * {
+        color: #000000 !important;
+    }
+
+    /* Card trong content */
+    .content .card {
+        background-color: #ffffff !important; /* trắng */
+        border: 1px solid #ddd !important;
+        color: #000000 !important;
+    }
+
+/* Footer sáng */
+footer {
+    background-color: #f8f9fa !important; /* xám nhạt */
+    color: #000000 !important; /* chữ đen */
+    padding: 10px;
+    text-align: center;
+}
