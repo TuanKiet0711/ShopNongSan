@@ -9,8 +9,8 @@
     @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
     <div class="col-md-6">
-        <label class="form-label">Tên danh mục</label>
-        <input asp-for="Ten" class="form-control" />
+        <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+        <input asp-for="Ten" class="form-control" required />
         <span asp-validation-for="Ten" class="text-danger"></span>
     </div>
 
@@ -19,3 +19,7 @@
         <a asp-action="Index" class="btn btn-secondary">Huỷ</a>
     </div>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

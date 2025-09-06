@@ -4,7 +4,6 @@
 }
 
 <div class="container-xxl px-0">
-
     <form asp-area="Admin" asp-controller="SanPhams" asp-action="Create"
           method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
         @Html.AntiForgeryToken()
@@ -28,7 +27,8 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-                                <select asp-for="DanhMucId" asp-items="ViewBag.DanhMucId" class="form-select select2 ns-control" required>
+                                <select asp-for="DanhMucId" asp-items="ViewBag.DanhMucId"
+                                        class="form-select select2 ns-control" required>
                                     <option value=""></option>
                                 </select>
                                 <span asp-validation-for="DanhMucId" class="text-danger small"></span>
@@ -76,7 +76,6 @@
                                     <input type="file" name="HinhAnhFile" id="HinhAnhFile"
                                            class="form-control ns-control" accept=".jpg,.jpeg,.png,.webp,.gif" />
                                     <span asp-validation-for="HinhAnh" class="text-danger small"></span>
-                                    
                                 </div>
                             </div>
                         </div>
@@ -97,6 +96,9 @@
 </div>
 
 @section Scripts {
+    <!-- Kích hoạt client-side validation -->
+    <partial name="_ValidationScriptsPartial" />
+
     <!-- jQuery + Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
@@ -104,40 +106,30 @@
 
     <script>
         (function () {
-            // Select2 (không placeholder)
+            // Select2
             $('.select2').each(function () {
                 const allowClear = $(this).attr('data-allow-clear') === 'true';
-                $(this).select2({
-                    allowClear: allowClear,
-                    width: '100%',
-                    minimumResultsForSearch: 5
-                });
+                $(this).select2({ allowClear, width: '100%', minimumResultsForSearch: 5 });
             });
 
             // Preview ảnh
             const input = document.getElementById('HinhAnhFile');
             const preview = document.getElementById('preview');
-            if (input) {
-                input.addEventListener('change', function () {
-                    const file = this.files && this.files[0];
-                    if (!file) return;
-                    const url = URL.createObjectURL(file);
-                    preview.src = url;
-                });
-            }
+            if (input) input.addEventListener('change', function () {
+                const file = this.files && this.files[0];
+                if (!file) return;
+                preview.src = URL.createObjectURL(file);
+            });
 
             // Định dạng giá & bind về hidden asp-for="Gia"
             const numberFormat = new Intl.NumberFormat('vi-VN');
             const giaDisplay = document.getElementById('GiaDisplay');
             const giaHidden  = document.getElementById('Gia');
-
             if (giaHidden && giaHidden.value) {
                 const n = Number((giaHidden.value + '').replace(',', '.'));
                 if (!isNaN(n)) giaDisplay.value = numberFormat.format(n);
             }
-
-            const onlyDigits = (str) => (str || '').replace(/[^\d]/g, '');
-
+            const onlyDigits = (s) => (s || '').replace(/[^\d]/g, '');
             function syncGia() {
                 const raw = onlyDigits(giaDisplay.value);
                 if (!raw) { giaHidden.value = ''; return; }
@@ -145,22 +137,18 @@
                 giaHidden.value = val.toString();
                 giaDisplay.value = numberFormat.format(val);
             }
-
             giaDisplay.addEventListener('blur', syncGia);
 
-            document.querySelector('form').addEventListener('submit', function (event) {
+            // Bootstrap validation + đảm bảo sync giá trước khi submit
+            document.querySelector('form').addEventListener('submit', function (e) {
                 syncGia();
-                if (!this.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
+                if (!this.checkValidity()) { e.preventDefault(); e.stopPropagation(); }
                 this.classList.add('was-validated');
             });
         })();
     </script>
 
     <style>
-        /* Chủ đề xanh nông sản */
         :root {
             --ns-green: #16a34a;
             --ns-soft: #eefaf1;
@@ -173,7 +161,6 @@
             margin-bottom: .75rem;
         }
 
-        /* Ô input đồng đều */
         .ns-control {
             height: 44px;
         }
@@ -198,7 +185,6 @@
             height: 44px !important;
         }
 
-        /* Ảnh cố định bên phải (sticky) */
         .ns-sticky {
             position: sticky;
             top: 12px;
@@ -225,7 +211,6 @@
             box-shadow: 0 .2rem .5rem rgba(0,0,0,.05);
         }
 
-        /* Nút */
         .btn-success {
             background-color: var(--ns-green) !important;
             border-color: var(--ns-green) !important;
@@ -234,7 +219,7 @@
         }
 
             .btn-success:hover {
-                filter: brightness(0.95);
+                filter: brightness(.95);
             }
 
         .btn-outline-secondary {
@@ -250,6 +235,5 @@
             border-bottom-left-radius: 16px;
             border-bottom-right-radius: 16px;
         }
-
     </style>
 }

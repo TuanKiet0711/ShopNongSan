@@ -11,26 +11,26 @@
     @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
     <div class="col-md-4">
-        <label class="form-label">Tên đăng nhập</label>
-        <input asp-for="TenDangNhap" class="form-control" />
+        <label class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
+        <input asp-for="TenDangNhap" class="form-control" required />
         <span asp-validation-for="TenDangNhap" class="text-danger"></span>
     </div>
 
     <div class="col-md-4">
-        <label class="form-label">Mật khẩu</label>
-        <input asp-for="MatKhau" type="text" class="form-control" /> @* hiển thị dạng text *@
+        <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+        <input asp-for="MatKhau" type="text" class="form-control" required />
         <span asp-validation-for="MatKhau" class="text-danger"></span>
     </div>
 
     <div class="col-md-4">
-        <label class="form-label">Họ tên</label>
-        <input asp-for="HoTen" class="form-control" />
+        <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+        <input asp-for="HoTen" class="form-control" required />
         <span asp-validation-for="HoTen" class="text-danger"></span>
     </div>
 
     <div class="col-md-4">
-        <label class="form-label">Vai trò</label>
-        <select asp-for="VaiTro" class="form-select">
+        <label class="form-label">Vai trò <span class="text-danger">*</span></label>
+        <select asp-for="VaiTro" class="form-select" required>
             @foreach (var vt in listVT)
             {
                 <option value="@vt">@vt</option>
