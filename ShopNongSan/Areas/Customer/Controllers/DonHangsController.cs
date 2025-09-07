@@ -48,7 +48,8 @@ namespace ShopNongSan.Areas.Customer.Controllers
             {
                 HoTen = tk.HoTen,
                 SoDienThoai = tt?.SoDienThoai ?? "",
-                DiaChi = tt?.DiaChi ?? ""
+                DiaChi = tt?.DiaChi ?? "",
+                GhiChu = tt?.GhiChu ?? ""               // ★ NEW: prefill ghi chú từ hồ sơ
             };
 
             // MUA NGAY
@@ -158,7 +159,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
                 return View("Checkout", model);
             }
 
-            // (2) Cập nhật địa chỉ/điện thoại mặc định (tuỳ chọn)
+            // (2) Cập nhật địa chỉ/điện thoại/ghi chú mặc định vào hồ sơ
             var tt = await _db.ThongTinNguoiDungs.FirstOrDefaultAsync(x => x.TaiKhoanId == UserId);
             if (tt == null)
             {
@@ -167,6 +168,8 @@ namespace ShopNongSan.Areas.Customer.Controllers
             }
             tt.DiaChi = model.DiaChi;
             tt.SoDienThoai = model.SoDienThoai;
+            tt.GhiChu = model.GhiChu;                 // ★ NEW: lưu Ghi chú từ CheckoutVM vào hồ sơ
+            tt.PhuongThucThanhToan = model.PhuongThucThanhToan;   // << NEW
             await _db.SaveChangesAsync();
 
             using var tx = await _db.Database.BeginTransactionAsync();

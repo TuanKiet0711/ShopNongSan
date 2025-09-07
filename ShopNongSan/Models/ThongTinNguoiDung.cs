@@ -13,5 +13,9 @@ public partial class ThongTinNguoiDung
 
     public string? SoDienThoai { get; set; }
 
+    public string? GhiChu { get; set; }
+
+    public string? PhuongThucThanhToan { get; set; }  // "COD" | "BANK"
+
     public virtual TaiKhoan TaiKhoan { get; set; } = null!;
 }

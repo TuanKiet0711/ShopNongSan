@@ -44,7 +44,9 @@ namespace ShopNongSan.Areas.Admin.Controllers
         {
             var don = await _db.DonHangs
                 .Include(d => d.TaiKhoan)
-                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                    .ThenInclude(tk => tk.ThongTinNguoiDung) // 👈 thêm dòng này
+                .Include(d => d.DonHangChiTiets)
+                    .ThenInclude(ct => ct.SanPham)
                 .FirstOrDefaultAsync(d => d.Id == id);
 
             if (don == null) return NotFound();
@@ -56,7 +58,9 @@ namespace ShopNongSan.Areas.Admin.Controllers
         {
             var don = await _db.DonHangs
                 .Include(d => d.TaiKhoan)
-                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                    .ThenInclude(tk => tk.ThongTinNguoiDung) // 👈 thêm dòng này
+                .Include(d => d.DonHangChiTiets)
+                    .ThenInclude(ct => ct.SanPham)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (don == null) return NotFound();
 
@@ -73,7 +77,8 @@ namespace ShopNongSan.Areas.Admin.Controllers
                 ModelState.AddModelError(nameof(trangThai), "Trạng thái không hợp lệ.");
 
             var don = await _db.DonHangs
-                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                .Include(d => d.DonHangChiTiets)
+                    .ThenInclude(ct => ct.SanPham)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (don == null) return NotFound();
 
@@ -100,7 +105,6 @@ namespace ShopNongSan.Areas.Admin.Controllers
                 // Bỏ Cancelled (Cancel → khác) → trừ kho lại (nếu đủ)
                 if (don.TrangThai == "Cancelled" && trangThai != "Cancelled")
                 {
-                    // Kiểm tra đủ kho
                     foreach (var ct in don.DonHangChiTiets)
                     {
                         if (ct.SanPham == null) continue;
@@ -111,7 +115,6 @@ namespace ShopNongSan.Areas.Admin.Controllers
                             return View(don);
                         }
                     }
-                    // Trừ kho
                     foreach (var ct in don.DonHangChiTiets)
                     {
                         if (ct.SanPham != null)
@@ -142,6 +145,7 @@ namespace ShopNongSan.Areas.Admin.Controllers
         {
             var don = await _db.DonHangs
                 .Include(d => d.TaiKhoan)
+                    .ThenInclude(tk => tk.ThongTinNguoiDung) // 👈 thêm dòng này
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (don == null) return NotFound();
             return View(don);
@@ -153,11 +157,11 @@ namespace ShopNongSan.Areas.Admin.Controllers
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
             var don = await _db.DonHangs
-                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                .Include(d => d.DonHangChiTiets)
+                    .ThenInclude(ct => ct.SanPham)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (don == null) return NotFound();
 
-            // Khuyến nghị: chỉ xóa khi đã Cancelled để không lệch tồn kho
             if (!string.Equals(don.TrangThai, "Cancelled", StringComparison.OrdinalIgnoreCase))
             {
                 TempData["toast"] = "Chỉ xóa đơn đã Hủy. Vui lòng chuyển trạng thái sang Cancelled trước.";
@@ -167,7 +171,7 @@ namespace ShopNongSan.Areas.Admin.Controllers
 
             try
             {
-                _db.DonHangs.Remove(don); // cascade xóa chi tiết
+                _db.DonHangs.Remove(don);
                 await _db.SaveChangesAsync();
                 TempData["toast"] = "Đã xóa đơn hàng.";
                 TempData["toastType"] = "success";

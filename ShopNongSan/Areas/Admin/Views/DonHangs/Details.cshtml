@@ -13,6 +13,7 @@
 </div>
 
 <div class="row g-3">
+    <!-- THÔNG TIN CHUNG -->
     <div class="col-lg-4">
         <div class="card shadow-sm">
             <div class="card-body">
@@ -24,6 +25,26 @@
                     <dt class="col-5">Khách hàng</dt>
                     <dd class="col-7">@Model.TaiKhoan?.HoTen (@Model.TaiKhoanId)</dd>
 
+                    <dt class="col-5">Số điện thoại</dt>
+                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.SoDienThoai </dd>
+
+                    <dt class="col-5">Địa chỉ</dt>
+                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.DiaChi </dd>
+
+                    <dt class="col-5">Ghi chú</dt>
+                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.GhiChu </dd>
+
+                    <dt class="col-5">Phương thức TT</dt>
+                    <dd class="col-7">
+                        @{
+                            var pttt = Model.TaiKhoan?.ThongTinNguoiDung?.PhuongThucThanhToan;
+                            string ptttText = pttt == "BANK"
+                            ? "Chuyển khoản"
+                            : (pttt == "COD" ? "Thanh toán khi nhận" : "");
+                        }
+                        @ptttText
+                    </dd>
+
                     <dt class="col-5">Trạng thái</dt>
                     <dd class="col-7">@Model.TrangThai</dd>
 
@@ -34,18 +55,19 @@
         </div>
     </div>
 
+    <!-- SẢN PHẨM -->
     <div class="col-lg-8">
         <div class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title">Sản phẩm</h5>
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle">
-                        <thead>
+                    <table class="table table-bordered align-middle text-center mb-0">
+                        <thead class="table-success">
                             <tr>
                                 <th>Sản phẩm</th>
-                                <th class="text-end">Đơn giá</th>
-                                <th class="text-center">SL</th>
-                                <th class="text-end">Thành tiền</th>
+                                <th>Đơn giá</th>
+                                <th>SL</th>
+                                <th>Thành tiền</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -53,9 +75,9 @@
                             {
                                 <tr>
                                     <td>@ct.SanPham?.Ten (@ct.SanPhamId)</td>
-                                    <td class="text-end">@ct.DonGia.ToString("N0") đ</td>
-                                    <td class="text-center">@ct.SoLuong</td>
-                                    <td class="text-end">@((ct.DonGia * ct.SoLuong).ToString("N0")) đ</td>
+                                    <td>@ct.DonGia.ToString("N0") đ</td>
+                                    <td>@ct.SoLuong</td>
+                                    <td>@((ct.DonGia * ct.SoLuong).ToString("N0")) đ</td>
                                 </tr>
                             }
                         </tbody>

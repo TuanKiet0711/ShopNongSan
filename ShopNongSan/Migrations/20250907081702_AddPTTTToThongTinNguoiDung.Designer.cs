@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShopNongSan.Models;
 
@@ -11,9 +12,11 @@ using ShopNongSan.Models;
 namespace ShopNongSan.Migrations
 {
     [DbContext(typeof(NongSanContext))]
-    partial class NongSanContextModelSnapshot : ModelSnapshot
+    [Migration("20250907081702_AddPTTTToThongTinNguoiDung")]
+    partial class AddPTTTToThongTinNguoiDung
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
