@@ -1,12 +1,13 @@
 ﻿@{
-    ViewData["Title"] = "Bảng điều khiển";
+    ViewData["Title"] = "Tổng quan";
 }
+
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
             <div>
-                <h2 class="fw-bold mb-1">🌱 Bảng điều khiển</h2>
-                <p class="text-muted mb-0">Chào mừng bạn đến khu vực quản trị nông sản sạch.</p>
+                <h2 class="fw-bold mb-1">📊 Tổng quan</h2>
+                <p class="text-muted mb-0">Thống kê tình hình cửa hàng nông sản sạch.</p>
             </div>
             <div>
                 <span class="badge rounded-pill text-bg-success px-3 py-2">
@@ -16,6 +17,62 @@
         </div>
     </div>
 
+    <!-- Báo cáo nhanh -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm agri text-center">
+            <div class="card-body">
+                <i class="bi bi-basket fs-2 text-primary"></i>
+                <h5 class="mt-2">Sản phẩm</h5>
+                <h3 class="fw-bold">@ViewBag.TotalProducts</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm agri text-center">
+            <div class="card-body">
+                <i class="bi bi-grid fs-2 text-success"></i>
+                <h5 class="mt-2">Danh mục</h5>
+                <h3 class="fw-bold">@ViewBag.TotalCategories</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm agri text-center">
+            <div class="card-body">
+                <i class="bi bi-receipt fs-2 text-danger"></i>
+                <h5 class="mt-2">Đơn hàng</h5>
+                <h3 class="fw-bold">@ViewBag.TotalOrders</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm agri text-center">
+            <div class="card-body">
+                <i class="bi bi-cash-stack fs-2 text-warning"></i>
+                <h5 class="mt-2">Doanh thu</h5>
+                <h3 class="fw-bold">@String.Format("{0:N0} ₫", ViewBag.TotalRevenue)</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Biểu đồ doanh thu -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">📈 Doanh thu theo tháng</h5>
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Các mục quản lý -->
+<div class="row g-4 mt-2">
     <!-- Danh mục -->
     <div class="col-md-3 col-sm-6">
         <div class="card h-100 border-0 shadow-sm agri">
@@ -98,3 +155,31 @@
         box-shadow: 0 4px 12px rgba(0,0,0,.08);
     }
 </style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('revenueChart').getContext('2d');
+        var revenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(ViewBag.RevenueLabels)),
+                datasets: [{
+                    label: 'Doanh thu (₫)',
+                    data: @Html.Raw(Json.Serialize(ViewBag.RevenueValues)),
+                    borderWidth: 1,
+                    backgroundColor: 'rgba(0, 200, 83, 0.5)',
+                    borderColor: 'rgba(0, 200, 83, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}
