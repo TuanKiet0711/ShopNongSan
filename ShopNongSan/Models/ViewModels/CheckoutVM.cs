@@ -26,15 +26,18 @@ namespace ShopNongSan.Models.ViewModels
         [StringLength(300)]
         public string? GhiChu { get; set; }
 
-        // Phương thức thanh toán (chỉ để nhập/hiển thị, không lưu DB)
+        [DataType(DataType.Date)]
+        [Display(Name = "Ngày giao hàng mong muốn")]
+        public DateTime? NgayGiao { get; set; }   // ✅ khách chọn ngày
+
         [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán")]
         [RegularExpression("COD|BANK", ErrorMessage = "Phương thức không hợp lệ")]
         public string PhuongThucThanhToan { get; set; } = "COD";
 
         // ==== MUA NGAY ====
-        public bool IsBuyNow { get; set; }           // true nếu vào Checkout bằng Buy Now
-        public int? BuyNowSanPhamId { get; set; }    // id sản phẩm mua ngay
-        public int BuyNowSoLuong { get; set; } = 1;  // số lượng mua ngay
+        public bool IsBuyNow { get; set; }
+        public int? BuyNowSanPhamId { get; set; }
+        public int BuyNowSoLuong { get; set; } = 1;
 
         public List<CheckoutItemVM> Items { get; set; } = new();
         public decimal TongTien => Items.Sum(x => x.ThanhTien);

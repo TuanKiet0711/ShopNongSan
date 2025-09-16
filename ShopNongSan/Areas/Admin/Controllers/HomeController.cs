@@ -23,11 +23,25 @@ namespace ShopNongSan.Controllers
             ViewBag.TotalOrders = _context.DonHangs.Count();
             ViewBag.TotalRevenue = _context.DonHangs.Sum(d => d.TongTien);
 
-            // Gửi dữ liệu cho biểu đồ (1 giá trị duy nhất)
-            ViewBag.RevenueLabels = new string[] { "Tổng doanh thu" };
-            ViewBag.RevenueValues = new decimal[] { ViewBag.TotalRevenue };
+            // Gom theo tháng dựa trên NgayDat
+            var statsByMonth = _context.DonHangs
+                .GroupBy(d => new { d.NgayDat.Year, d.NgayDat.Month })
+                .Select(g => new
+                {
+                    Month = g.Key.Month,
+                    Year = g.Key.Year,
+                    TotalRevenue = g.Sum(x => x.TongTien),
+                    TotalOrders = g.Count()
+                })
+                .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                .ToList();
+
+            ViewBag.RevenueLabels = statsByMonth.Select(x => $"{x.Month}/{x.Year}").ToArray();
+            ViewBag.RevenueValues = statsByMonth.Select(x => x.TotalRevenue).ToArray();
+            ViewBag.OrderValues = statsByMonth.Select(x => x.TotalOrders).ToArray(); // ✅ thêm dòng này
 
             return View();
         }
+
     }
 }

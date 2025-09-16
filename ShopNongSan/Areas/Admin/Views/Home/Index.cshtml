@@ -59,12 +59,12 @@
     </div>
 </div>
 
-<!-- Biểu đồ doanh thu -->
+<!-- Biểu đồ doanh thu & đơn hàng -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <h5 class="fw-bold mb-3">📈 Doanh thu theo tháng</h5>
+                <h5 class="fw-bold mb-3">📈 Doanh thu & Đơn hàng theo tháng</h5>
                 <canvas id="revenueChart" height="100"></canvas>
             </div>
         </div>
@@ -160,26 +160,59 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         var ctx = document.getElementById('revenueChart').getContext('2d');
-        var revenueChart = new Chart(ctx, {
+                var revenueChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: @Html.Raw(Json.Serialize(ViewBag.RevenueLabels)),
-                datasets: [{
-                    label: 'Doanh thu (₫)',
-                    data: @Html.Raw(Json.Serialize(ViewBag.RevenueValues)),
-                    borderWidth: 1,
-                    backgroundColor: 'rgba(0, 200, 83, 0.5)',
-                    borderColor: 'rgba(0, 200, 83, 1)'
-                }]
+                datasets: [
+                    {
+                        label: 'Doanh thu (₫)',
+                        data: @Html.Raw(Json.Serialize(ViewBag.RevenueValues)),
+                        borderWidth: 1,
+                        backgroundColor: 'rgba(0, 200, 83, 0.6)',
+                        borderColor: 'rgba(0, 200, 83, 1)',
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Số đơn hàng',
+                        data: @Html.Raw(Json.Serialize(ViewBag.OrderValues)),
+                        borderWidth: 1,
+                        backgroundColor: 'rgba(0, 123, 255, 0.6)',
+                        borderColor: '#007bff',
+                        yAxisID: 'y2'
+                    }
+                ]
             },
             options: {
                 responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 scales: {
-                    y: {
-                        beginAtZero: true
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString("vi-VN") + " ₫";
+                            }
+                        }
+                    },
+                    y2: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false
+                        }
                     }
                 }
             }
         });
+
     </script>
 }
