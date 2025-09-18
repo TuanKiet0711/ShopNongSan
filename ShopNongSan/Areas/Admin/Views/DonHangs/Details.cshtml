@@ -26,31 +26,42 @@
                     <dd class="col-7">@Model.TaiKhoan?.HoTen (@Model.TaiKhoanId)</dd>
 
                     <dt class="col-5">Số điện thoại</dt>
-                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.SoDienThoai </dd>
+                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.SoDienThoai</dd>
 
                     <dt class="col-5">Địa chỉ</dt>
-                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.DiaChi </dd>
+                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.DiaChi</dd>
 
-                    <dt class="col-5">Ghi chú</dt>
-                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.GhiChu </dd>
+                    <dt class="col-5">Ngày đặt</dt>
+                    <dd class="col-7">@Model.NgayDat.ToString("dd/MM/yyyy HH:mm")</dd> <!-- 👈 thêm -->
 
-                    <dt class="col-5">Phương thức TT</dt>
+                    <dt class="col-5">Ngày giao dự kiến</dt>
                     <dd class="col-7">
-                        @{
-                            var pttt = Model.TaiKhoan?.ThongTinNguoiDung?.PhuongThucThanhToan;
-                            string ptttText = pttt == "BANK"
-                            ? "Chuyển khoản"
-                            : (pttt == "COD" ? "Thanh toán khi nhận" : "");
-                        }
-                        @ptttText
-                    </dd>
+                        @(Model.NgayGiao.HasValue 
+                        ? Model.NgayGiao.Value.ToString("dd/MM/yyyy") 
+                        : "Chưa chọn")
+                    </dd> <!-- 👈 thêm -->
 
-                    <dt class="col-5">Trạng thái</dt>
-                    <dd class="col-7">@Model.TrangThai</dd>
+                <dt class="col-5">Ghi chú</dt>
+                <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.GhiChu</dd>
 
-                    <dt class="col-5">Tổng tiền</dt>
-                    <dd class="col-7">@Model.TongTien.ToString("N0") đ</dd>
-                </dl>
+    <dt class="col-5">Phương thức TT</dt>
+    <dd class="col-7">
+        @{
+            var pttt = Model.TaiKhoan?.ThongTinNguoiDung?.PhuongThucThanhToan;
+            string ptttText = pttt == "BANK"
+                ? "Chuyển khoản"
+                : (pttt == "COD" ? "Thanh toán khi nhận" : "");
+        }
+        @ptttText
+    </dd>
+
+    <dt class="col-5">Trạng thái</dt>
+    <dd class="col-7">@Model.TrangThai</dd>
+
+    <dt class="col-5">Tổng tiền</dt>
+    <dd class="col-7">@Model.TongTien.ToString("N0") đ</dd>
+</dl>
+
             </div>
         </div>
     </div>

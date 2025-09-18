@@ -46,7 +46,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
                 SoDienThoai = tt?.SoDienThoai ?? "",
                 DiaChi = tt?.DiaChi ?? "",
                 GhiChu = tt?.GhiChu ?? "",
-                NgayGiao = DateTime.Today.AddDays(1)   // ★ mặc định ngày mai
+                NgayGiao = DateTime.Today.AddDays(1)   // mặc định ngày mai
             };
 
             // MUA NGAY
@@ -116,9 +116,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
         public async Task<IActionResult> Place(CheckoutVM model)
         {
             if (!ModelState.IsValid)
-            {
                 return View("Checkout", model);
-            }
 
             var tt = await _db.ThongTinNguoiDungs.FirstOrDefaultAsync(x => x.TaiKhoanId == UserId);
             if (tt == null)
@@ -136,11 +134,10 @@ namespace ShopNongSan.Areas.Customer.Controllers
             try
             {
                 // (1) Chuẩn bị danh sách sản phẩm
-                List<(int SanPhamId, decimal DonGia, int SoLuong, SanPham? Sp)> lines = new();
+                List<(int SanPhamId, decimal DonGia, int SoLuong, SanPham? Sp)> lines;
 
                 if (model.IsBuyNow && model.BuyNowSanPhamId.HasValue)
                 {
-                    // MUA NGAY
                     var sp = await _db.SanPhams.FirstOrDefaultAsync(x => x.Id == model.BuyNowSanPhamId.Value);
                     if (sp == null)
                     {
@@ -149,12 +146,10 @@ namespace ShopNongSan.Areas.Customer.Controllers
                         return RedirectToAction("Index", "SanPhams", new { area = "Customer" });
                     }
                     int q = Math.Max(1, model.BuyNowSoLuong);
-
                     lines = new() { (sp.Id, sp.Gia, q, sp) };
                 }
                 else
                 {
-                    // TỪ GIỎ
                     var cart = await _db.GioHangs.FirstOrDefaultAsync(x => x.TaiKhoanId == UserId);
                     if (cart == null)
                     {
@@ -198,8 +193,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
                 // (3) Tạo đơn
                 var tong = lines.Sum(l => l.DonGia * l.SoLuong);
                 string code = NewOrderCode();
-                int tries = 0;
-                while (tries++ < 3 && await _db.DonHangs.AnyAsync(d => d.MaDonHang == code))
+                while (await _db.DonHangs.AnyAsync(d => d.MaDonHang == code))
                     code = NewOrderCode();
 
                 var order = new DonHang
@@ -208,8 +202,8 @@ namespace ShopNongSan.Areas.Customer.Controllers
                     TaiKhoanId = UserId,
                     TongTien = tong,
                     TrangThai = "Pending",
-                    NgayDat = DateTime.Now,           // hệ thống ghi thời gian đặt
-                    NgayGiao = model.NgayGiao        // ngày khách mong muốn
+                    NgayDat = DateTime.Now,
+                    NgayGiao = model.NgayGiao
                 };
                 _db.DonHangs.Add(order);
                 await _db.SaveChangesAsync();
@@ -228,7 +222,6 @@ namespace ShopNongSan.Areas.Customer.Controllers
                 }
                 await _db.SaveChangesAsync();
 
-                // (4) Xóa giỏ nếu không phải mua ngay
                 if (!model.IsBuyNow)
                 {
                     var cart = await _db.GioHangs.FirstOrDefaultAsync(x => x.TaiKhoanId == UserId);
@@ -256,6 +249,72 @@ namespace ShopNongSan.Areas.Customer.Controllers
             }
         }
 
-        // Các action Index, Details, Cancel giữ nguyên
+        // GET: /Customer/DonHangs
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var list = await _db.DonHangs
+                .Where(d => d.TaiKhoanId == UserId)
+                .OrderByDescending(d => d.NgayDat)
+                .ToListAsync();
+
+            return View(list);
+        }
+
+        // GET: /Customer/DonHangs/Details/{id}
+        [HttpGet]
+        public async Task<IActionResult> Details(long id)
+        {
+            var don = await _db.DonHangs
+                .Include(d => d.DonHangChiTiets)
+                .ThenInclude(ct => ct.SanPham)
+                .FirstOrDefaultAsync(d => d.Id == id && d.TaiKhoanId == UserId);
+
+            if (don == null) return NotFound();
+
+            return View(don);
+        }
+
+        // POST: /Customer/DonHangs/Cancel
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(long id)
+        {
+            var don = await _db.DonHangs
+                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
+                .FirstOrDefaultAsync(d => d.Id == id && d.TaiKhoanId == UserId);
+
+            if (don == null) return NotFound();
+
+            if (!string.Equals(don.TrangThai, "Pending", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["toast"] = "Chỉ hủy được khi đơn đang Chờ xác nhận (Pending).";
+                TempData["toastType"] = "warning";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var ct in don.DonHangChiTiets)
+                    if (ct.SanPham != null)
+                        ct.SanPham.SoLuongTon += ct.SoLuong;
+
+                don.TrangThai = "Cancelled";
+                await _db.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                TempData["toast"] = $"Đã hủy đơn {don.MaDonHang}.";
+                TempData["toastType"] = "success";
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                TempData["toast"] = "Hủy đơn thất bại: " + ex.Message;
+                TempData["toastType"] = "danger";
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
     }
 }

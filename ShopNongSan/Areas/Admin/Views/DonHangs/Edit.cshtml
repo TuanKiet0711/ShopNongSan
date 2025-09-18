@@ -14,6 +14,18 @@
         <div class="form-text">Pending → Confirmed → Shipped → Completed / Cancelled</div>
     </div>
 
+    <div class="col-12 col-md-4">
+        <label class="form-label">Ngày đặt</label>
+        <input class="form-control" value="@Model.NgayDat.ToString("dd/MM/yyyy HH:mm")" disabled />
+        <div class="form-text">Ngày khách đặt hàng (không thể sửa)</div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <label class="form-label">Ngày giao dự kiến</label>
+        <input asp-for="NgayGiao" type="date" class="form-control" />
+        <span asp-validation-for="NgayGiao" class="text-danger"></span>
+    </div>
+
     <div class="col-12">
         <button class="btn btn-primary">Lưu</button>
         <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>

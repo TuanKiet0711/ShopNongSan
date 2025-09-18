@@ -23,25 +23,35 @@ namespace ShopNongSan.Controllers
             ViewBag.TotalOrders = _context.DonHangs.Count();
             ViewBag.TotalRevenue = _context.DonHangs.Sum(d => d.TongTien);
 
-            // Gom theo tháng dựa trên NgayDat
-            var statsByMonth = _context.DonHangs
-                .GroupBy(d => new { d.NgayDat.Year, d.NgayDat.Month })
+            // === Gom theo ngày (7 ngày gần nhất) ===
+            var today = DateTime.Today;
+            var startDate = today.AddDays(-6);
+
+            var statsByDay = _context.DonHangs
+                .Where(d => d.NgayDat.Date >= startDate && d.TrangThai != "Cancelled")
+                .GroupBy(d => d.NgayDat.Date)
                 .Select(g => new
                 {
-                    Month = g.Key.Month,
-                    Year = g.Key.Year,
+                    Date = g.Key,
                     TotalRevenue = g.Sum(x => x.TongTien),
                     TotalOrders = g.Count()
                 })
-                .OrderBy(x => x.Year).ThenBy(x => x.Month)
                 .ToList();
 
-            ViewBag.RevenueLabels = statsByMonth.Select(x => $"{x.Month}/{x.Year}").ToArray();
-            ViewBag.RevenueValues = statsByMonth.Select(x => x.TotalRevenue).ToArray();
-            ViewBag.OrderValues = statsByMonth.Select(x => x.TotalOrders).ToArray(); // ✅ thêm dòng này
+            // Danh sách đủ 7 ngày liên tục
+            var labels = Enumerable.Range(0, 7)
+                .Select(i => startDate.AddDays(i))
+                .ToList();
+
+            ViewBag.RevenueLabels = labels.Select(d => d.ToString("dd/MM")).ToArray();
+            ViewBag.RevenueValues = labels.Select(d =>
+                statsByDay.FirstOrDefault(x => x.Date == d)?.TotalRevenue ?? 0
+            ).ToArray();
+            ViewBag.OrderValues = labels.Select(d =>
+                statsByDay.FirstOrDefault(x => x.Date == d)?.TotalOrders ?? 0
+            ).ToArray();
 
             return View();
         }
-
     }
 }
