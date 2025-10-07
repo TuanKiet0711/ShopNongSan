@@ -19,7 +19,8 @@
 
                         <div class="mb-3">
                             <label class="form-label">Tên <span class="text-danger">*</span></label>
-                            <input asp-for="Ten" class="form-control ns-control" required />
+                            <input asp-for="Ten" class="form-control ns-control"
+                                   placeholder="Nhập tên sản phẩm..." required />
                             <span asp-validation-for="Ten" class="text-danger small"></span>
                             <div class="invalid-feedback">Vui lòng nhập tên sản phẩm.</div>
                         </div>
@@ -28,7 +29,8 @@
                             <div class="col-md-6">
                                 <label class="form-label">Danh mục <span class="text-danger">*</span></label>
                                 <select asp-for="DanhMucId" asp-items="ViewBag.DanhMucId"
-                                        class="form-select select2 ns-control" required>
+                                        class="form-select select2 ns-control"
+                                        data-placeholder="-- Chọn danh mục --" required>
                                     <option value=""></option>
                                 </select>
                                 <span asp-validation-for="DanhMucId" class="text-danger small"></span>
@@ -38,24 +40,35 @@
                             <div class="col-md-6">
                                 <label class="form-label">Thương hiệu</label>
                                 <select asp-for="ThuongHieuId" asp-items="ViewBag.ThuongHieuId"
-                                        class="form-select select2 ns-control" data-allow-clear="true">
+                                        class="form-select select2 ns-control"
+                                        data-allow-clear="true"
+                                        data-placeholder="-- Chọn thương hiệu  --">
                                     <option value=""></option>
                                 </select>
                                 <span asp-validation-for="ThuongHieuId" class="text-danger small"></span>
                             </div>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả (tối đa 500 ký tự)</label>
+                            <textarea asp-for="MoTa" class="form-control" rows="4" maxlength="500"
+                                      placeholder="Nhập mô tả sản phẩm ngắn gọn..."></textarea>
+                            <span asp-validation-for="MoTa" class="text-danger small"></span>
+                        </div>
+
                         <div class="row g-3 mt-1">
                             <div class="col-md-6">
                                 <label class="form-label">Giá (đ) <span class="text-danger">*</span></label>
-                                <input type="text" id="GiaDisplay" class="form-control ns-control" inputmode="numeric" required />
+                                <input type="text" id="GiaDisplay" class="form-control ns-control"
+                                       inputmode="numeric" placeholder="Nhập giá" required />
                                 <input asp-for="Gia" type="hidden" id="Gia" />
                                 <span asp-validation-for="Gia" class="text-danger small"></span>
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label">Số lượng tồn <span class="text-danger">*</span></label>
-                                <input asp-for="SoLuongTon" type="number" min="0" class="form-control ns-control" required />
+                                <input asp-for="SoLuongTon" type="number" min="0"
+                                       class="form-control ns-control" placeholder="Nhập số lượng tồn" required />
                                 <span asp-validation-for="SoLuongTon" class="text-danger small"></span>
                             </div>
                         </div>
@@ -75,6 +88,7 @@
                                     <label class="form-label">Hình ảnh</label>
                                     <input type="file" name="HinhAnhFile" id="HinhAnhFile"
                                            class="form-control ns-control" accept=".jpg,.jpeg,.png,.webp,.gif" />
+                                    <div class="form-text">Chọn ảnh .jpg, .jpeg, .png, .webp, .gif (tối đa 5MB).</div>
                                     <span asp-validation-for="HinhAnh" class="text-danger small"></span>
                                 </div>
                             </div>
@@ -106,10 +120,17 @@
 
     <script>
         (function () {
-            // Select2
+            // Select2 + placeholder từ data-placeholder
             $('.select2').each(function () {
-                const allowClear = $(this).attr('data-allow-clear') === 'true';
-                $(this).select2({ allowClear, width: '100%', minimumResultsForSearch: 5 });
+                const $el = $(this);
+                const allowClear = $el.attr('data-allow-clear') === 'true';
+                const placeholder = $el.attr('data-placeholder') || '-- Chọn --';
+                $el.select2({
+                    allowClear,
+                    width: '100%',
+                    minimumResultsForSearch: 5,
+                    placeholder: placeholder
+                });
             });
 
             // Preview ảnh
@@ -139,7 +160,7 @@
             }
             giaDisplay.addEventListener('blur', syncGia);
 
-            // Bootstrap validation + đảm bảo sync giá trước khi submit
+            // Bootstrap validation + đảm bảo sync giá trước submit
             document.querySelector('form').addEventListener('submit', function (e) {
                 syncGia();
                 if (!this.checkValidity()) { e.preventDefault(); e.stopPropagation(); }

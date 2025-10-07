@@ -22,38 +22,33 @@
                     <dt class="col-5">Mã đơn</dt>
                     <dd class="col-7">@Model.MaDonHang</dd>
 
-                    <dt class="col-5">Khách hàng</dt>
-                    <dd class="col-7">@Model.TaiKhoan?.HoTen (@Model.TaiKhoanId)</dd>
+                    <dt class="col-5">Người nhận</dt>
+                    <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.HoTen) ? Model.HoTen : (Model.TaiKhoan?.HoTen ?? "-"))</dd>
 
                     <dt class="col-5">Số điện thoại</dt>
-                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.SoDienThoai</dd>
+                    <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.SoDienThoai) ? Model.SoDienThoai : (Model.TaiKhoan?.ThongTinNguoiDung?.SoDienThoai ?? "-"))</dd>
 
                     <dt class="col-5">Địa chỉ</dt>
-                    <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.DiaChi</dd>
+                    <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.DiaChi) ? Model.DiaChi : (Model.TaiKhoan?.ThongTinNguoiDung?.DiaChi ?? "-"))</dd>
 
-                    <dt class="col-5">Ngày đặt</dt>
-                    <dd class="col-7">@Model.NgayDat.ToString("dd/MM/yyyy HH:mm")</dd> <!-- 👈 thêm -->
+                    <dt class="col-5">Ghi chú</dt>
+                    <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.GhiChu) ? Model.GhiChu : (Model.TaiKhoan?.ThongTinNguoiDung?.GhiChu ?? "-"))</dd>
 
-                    <dt class="col-5">Ngày giao dự kiến</dt>
+                    <dt class="col-5">Phương thức TT</dt>
                     <dd class="col-7">
-                        @(Model.NgayGiao.HasValue 
-                        ? Model.NgayGiao.Value.ToString("dd/MM/yyyy") 
-                        : "Chưa chọn")
-                    </dd> <!-- 👈 thêm -->
+                        @{
+                            // Ưu tiên snapshot trong DonHang
+                            var pttt = !string.IsNullOrWhiteSpace(Model.PhuongThucThanhToan)
+                            ? Model.PhuongThucThanhToan
+                            : Model.TaiKhoan?.ThongTinNguoiDung?.PhuongThucThanhToan;
 
-                <dt class="col-5">Ghi chú</dt>
-                <dd class="col-7">@Model.TaiKhoan?.ThongTinNguoiDung?.GhiChu</dd>
+                            string ptttText = pttt == "BANK" ? "Chuyển khoản"
+                            : pttt == "COD" ? "Thanh toán khi nhận (COD)"
+                            : "-";
+                        }
+                        @ptttText
+                    </dd>
 
-    <dt class="col-5">Phương thức TT</dt>
-    <dd class="col-7">
-        @{
-            var pttt = Model.TaiKhoan?.ThongTinNguoiDung?.PhuongThucThanhToan;
-            string ptttText = pttt == "BANK"
-                ? "Chuyển khoản"
-                : (pttt == "COD" ? "Thanh toán khi nhận" : "");
-        }
-        @ptttText
-    </dd>
 
     <dt class="col-5">Trạng thái</dt>
     <dd class="col-7">@Model.TrangThai</dd>

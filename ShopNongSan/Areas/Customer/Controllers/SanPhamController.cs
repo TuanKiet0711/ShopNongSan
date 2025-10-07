@@ -12,13 +12,8 @@ namespace ShopNongSan.Controllers
     public class SanPhamsController : Controller
     {
         private readonly NongSanContext _context;
+        public SanPhamsController(NongSanContext context) => _context = context;
 
-        public SanPhamsController(NongSanContext context)
-        {
-            _context = context;
-        }
-
-        // Parse "1,500,000 đ" -> 1500000
         private static decimal? ParseVnd(string? input)
         {
             if (string.IsNullOrWhiteSpace(input)) return null;
@@ -36,16 +31,13 @@ namespace ShopNongSan.Controllers
                 .AsNoTracking()
                 .AsQueryable();
 
-            // ===== TÌM KHÔNG DẤU (accent-insensitive) =====
             if (!string.IsNullOrWhiteSpace(filter.Q))
             {
                 var q = filter.Q.Trim();
-                // Dùng collation phổ biến: SQL_Latin1_General_CP1_CI_AI
                 query = query.Where(sp =>
                     EF.Functions.Like(
                         EF.Functions.Collate(sp.Ten, "SQL_Latin1_General_CP1_CI_AI"),
-                        $"%{q}%")
-                );
+                        $"%{q}%"));
             }
 
             if (filter.DanhMucId.HasValue)
@@ -54,14 +46,11 @@ namespace ShopNongSan.Controllers
             if (filter.ThuongHieuId.HasValue)
                 query = query.Where(sp => sp.ThuongHieuId == filter.ThuongHieuId.Value);
 
-            // ===== KHOẢNG GIÁ =====
             var giaMin = ParseVnd(filter.GiaMinStr);
             var giaMax = ParseVnd(filter.GiaMaxStr);
-
             if (giaMin.HasValue) query = query.Where(sp => sp.Gia >= giaMin.Value);
             if (giaMax.HasValue) query = query.Where(sp => sp.Gia <= giaMax.Value);
 
-            // Sắp xếp
             query = filter.Sort switch
             {
                 "price_asc" => query.OrderBy(sp => sp.Gia),
@@ -76,6 +65,31 @@ namespace ShopNongSan.Controllers
 
             var sanPhams = await query.ToListAsync();
             return View(sanPhams);
+        }
+
+        // GET: Customer/SanPhams/Details/5
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var sp = await _context.SanPhams
+                .Include(x => x.DanhMuc)
+                .Include(x => x.ThuongHieu)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (sp == null) return NotFound();
+
+            // Liên quan: cùng danh mục, ưu tiên cùng thương hiệu
+            var lienQuan = await _context.SanPhams
+                .Where(x => x.Id != sp.Id && x.DanhMucId == sp.DanhMucId)
+                .OrderByDescending(x => x.ThuongHieuId == sp.ThuongHieuId)
+                .ThenByDescending(x => x.Id)
+                .Take(8)
+                .AsNoTracking()
+                .ToListAsync();
+
+            ViewBag.LienQuan = lienQuan;
+            return View(sp);
         }
     }
 }

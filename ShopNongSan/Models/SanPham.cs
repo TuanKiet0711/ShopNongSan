@@ -19,6 +19,8 @@ public partial class SanPham
 
     public string? HinhAnh { get; set; }
 
+    public string? MoTa { get; set; }
+
     public virtual DanhMuc DanhMuc { get; set; } = null!;
 
     public virtual ICollection<DonHangChiTiet> DonHangChiTiets { get; set; } = new List<DonHangChiTiet>();

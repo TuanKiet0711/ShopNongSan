@@ -1,0 +1,371 @@
+﻿@model ShopNongSan.Models.SanPham
+@{
+    ViewData["Title"] = Model.Ten;
+    Layout = "~/Areas/Customer/Views/Shared/_CustomerLayout.cshtml";
+    var lienQuan = ViewBag.LienQuan as IEnumerable<ShopNongSan.Models.SanPham>;
+    bool isCustomer = User?.Identity?.IsAuthenticated == true && User.IsInRole("Customer");
+}
+
+@section Head {
+    <style>
+        .prod-hero-card {
+            max-width: 380px;
+            margin: auto;
+            border: 0;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+            .prod-hero-card img {
+                width: 100%;
+                height: 380px;
+                object-fit: cover;
+            }
+
+        .prod-title {
+            color: #2e7d32;
+            font-weight: 800;
+        }
+
+        .prod-price {
+            color: #d23333;
+            font-weight: 800;
+            font-size: 1.8rem;
+        }
+
+        .rp-card {
+            border: 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0,0,0,.08);
+            transition: .25s;
+            height: 100%;
+        }
+
+            .rp-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 12px 28px rgba(0,0,0,.12);
+            }
+
+            .rp-card img {
+                width: 100%;
+                height: 170px;
+                object-fit: cover;
+            }
+
+        .btn-buy {
+            background: linear-gradient(135deg,#ef4444,#f87171);
+            border: none;
+        }
+
+        .btn-cart {
+            border: 2px solid #2e7d32;
+            color: #2e7d32;
+        }
+
+            .btn-cart:hover {
+                background: #2e7d32;
+                color: #fff;
+            }
+
+        .btn-detail {
+            border: 2px solid #0d6efd;
+            color: #0d6efd;
+        }
+
+            .btn-detail:hover {
+                background: #0d6efd;
+                color: #fff;
+            }
+
+        .btn-back-store {
+            background: #f8f9fa;
+            border: 2px solid #2e7d32;
+            color: #2e7d32;
+            font-weight: 600;
+            transition: .25s;
+        }
+
+            .btn-back-store:hover {
+                background: #2e7d32;
+                color: #fff;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+            }
+
+        /* ===== Description card (đồng bộ brand) ===== */
+        .desc-title {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: #2e7d32;
+            font-weight: 800;
+            margin-bottom: .5rem;
+        }
+
+        .desc-card {
+            background: #fff;
+            border: 2px solid rgba(46,125,50,.15);
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0,0,0,.06);
+            padding: 1rem 1.25rem;
+            transition: .25s;
+        }
+
+            .desc-card:hover {
+                box-shadow: 0 10px 28px rgba(0,0,0,.10);
+            }
+
+        .desc-body {
+            color: #333;
+            line-height: 1.7;
+            white-space: pre-line;
+            max-height: 9.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+            .desc-body.expanded {
+                max-height: none;
+            }
+
+        .desc-fade {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2.5rem;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), #fff);
+            pointer-events: none;
+        }
+
+        .desc-actions {
+            margin-top: .5rem
+        }
+
+        .btn-desc-toggle {
+            border: 2px solid #2e7d32;
+            color: #2e7d32;
+            background: transparent;
+            border-radius: 999px;
+            padding: .45rem 1rem;
+            font-weight: 700;
+            transition: .2s;
+        }
+
+            .btn-desc-toggle:hover {
+                background: #2e7d32;
+                color: #fff;
+            }
+    </style>
+}
+
+<div class="container py-4">
+    <div class="row g-4 align-items-start">
+        <!-- ẢNH -->
+        <div class="col-lg-5 text-center">
+            <div class="card prod-hero-card shadow-sm">
+                <img src="@(string.IsNullOrEmpty(Model.HinhAnh) ? Url.Content("~/images/no-image.png") : Model.HinhAnh)"
+                     alt="@Model.Ten" />
+            </div>
+        </div>
+
+        <!-- THÔNG TIN -->
+        <div class="col-lg-7">
+            <h2 class="prod-title">@Model.Ten</h2>
+            <p class="text-muted mb-1">Mã sản phẩm: #@Model.Id</p>
+
+            <div class="prod-price my-3">@Model.Gia.ToString("N0") đ</div>
+
+            <ul class="list-unstyled mb-4">
+                <li><strong>Danh mục:</strong> @Model.DanhMuc?.Ten</li>
+                <li><strong>Thương hiệu:</strong> @(Model.ThuongHieu?.Ten ?? "Đang cập nhật")</li>
+                <li><strong>Tồn kho:</strong> @Model.SoLuongTon</li>
+            </ul>
+
+            @* MÔ TẢ SẢN PHẨM *@
+            @if (!string.IsNullOrWhiteSpace(Model.MoTa))
+            {
+                <div class="mb-4">
+                    <div class="desc-title">
+                        <i class="bi bi-file-text"></i><span>Mô tả sản phẩm</span>
+                    </div>
+                    <div class="desc-card">
+                        <div id="descBody" class="desc-body">
+                            @Html.Raw(Model.MoTa)
+                            <div class="desc-fade" id="descFade"></div>
+                        </div>
+                        <div class="desc-actions">
+                            <button type="button" id="descToggle" class="btn btn-desc-toggle">Xem thêm</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex flex-wrap gap-3">
+                <!-- Mua ngay -->
+                <form method="post" asp-area="Customer" asp-controller="DonHangs" asp-action="BuyNow">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="qty" value="1" />
+                    <button type="submit" class="btn btn-buy btn-lg rounded-pill px-4 text-white">
+                        <i class="bi bi-lightning-charge-fill me-2"></i>Mua ngay
+                    </button>
+                </form>
+
+                @if (isCustomer)
+                {
+                    <!-- Đã đăng nhập: thêm giỏ AJAX -->
+                    <form method="post" asp-area="Customer" asp-controller="GioHang" asp-action="AddAjax"
+                          class="add-cart-form" data-ajax="true">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="qty" value="1" />
+                        <button type="submit" class="btn btn-cart btn-lg rounded-pill px-4">
+                            <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <!-- Chưa đăng nhập: post thường để controller redirect sang login -->
+                    <form method="post" asp-area="Customer" asp-controller="GioHang" asp-action="Add">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="qty" value="1" />
+                        <input type="hidden" name="returnUrl" value="@(Context?.Request?.Path + Context?.Request?.QueryString)" />
+                        <button type="submit" class="btn btn-cart btn-lg rounded-pill px-4">
+                            <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
+                        </button>
+                    </form>
+                }
+            </div>
+
+            <!-- Nút quay lại -->
+            <div class="mt-4">
+                <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index"
+                   class="btn btn-back-store btn-lg rounded-pill px-4">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Quay lại cửa hàng
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SẢN PHẨM LIÊN QUAN -->
+    @if (lienQuan != null && lienQuan.Any())
+    {
+        <hr class="my-5" />
+        <h4 class="fw-bold text-success mb-3">Sản phẩm liên quan</h4>
+
+        <div class="row g-4">
+            @foreach (var sp in lienQuan)
+            {
+                <div class="col-6 col-md-3">
+                    <div class="rp-card card">
+                        <img src="@(string.IsNullOrEmpty(sp.HinhAnh) ? Url.Content("~/images/no-image.png") : sp.HinhAnh)"
+                             alt="@sp.Ten" />
+                        <div class="card-body d-flex flex-column text-center">
+                            <h6 class="fw-semibold text-truncate mb-1" title="@sp.Ten">@sp.Ten</h6>
+                            <div class="text-success fw-bold mb-2">@sp.Gia.ToString("N0") đ</div>
+                            <div class="mt-auto d-grid gap-2">
+                                <a asp-action="Details" asp-route-id="@sp.Id" class="btn btn-sm btn-detail rounded-pill">
+                                    Xem chi tiết
+                                </a>
+
+                                @if (isCustomer)
+                                {
+                                    <form method="post" asp-area="Customer" asp-controller="GioHang" asp-action="AddAjax"
+                                          class="add-cart-form" data-ajax="true">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@sp.Id" />
+                                        <input type="hidden" name="qty" value="1" />
+                                        <button class="btn btn-sm btn-cart rounded-pill" type="submit">
+                                            <i class="bi bi-cart-plus me-1"></i>Thêm giỏ
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form method="post" asp-area="Customer" asp-controller="GioHang" asp-action="Add">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@sp.Id" />
+                                        <input type="hidden" name="qty" value="1" />
+                                        <input type="hidden" name="returnUrl" value="@(Context?.Request?.Path + Context?.Request?.QueryString)" />
+                                        <button class="btn btn-sm btn-cart rounded-pill" type="submit">
+                                            <i class="bi bi-cart-plus me-1"></i>Thêm giỏ
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // AJAX thêm giỏ (nếu đã đăng nhập Customer)
+        document.querySelectorAll('form.add-cart-form[data-ajax="true"]').forEach(form => {
+          form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const tokenInput = form.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : null;
+            const fd = new FormData(form);
+
+            try {
+              const res = await fetch(form.action, {
+                method: 'POST',
+                headers: token ? { 'RequestVerificationToken': token } : {},
+                body: fd
+              });
+              const data = await res.json();
+              if (data && data.ok) {
+                if (window.showToast) showToast(data.message, 'success');
+                // update badge nếu có
+                if (typeof updateCartBadge === 'function' && data.cartCount !== undefined)
+                  updateCartBadge(data.cartCount);
+              } else {
+                if (window.showToast) showToast((data && data.message) || 'Thêm vào giỏ thất bại', 'danger');
+              }
+            } catch {
+              if (window.showToast) showToast('Không thể kết nối máy chủ.', 'danger');
+            }
+          });
+        });
+
+        // Toggle mô tả: Xem thêm / Thu gọn
+        (function(){
+          const body = document.getElementById('descBody');
+          const fade = document.getElementById('descFade');
+          const btn  = document.getElementById('descToggle');
+          if (!body || !btn) return;
+
+          const isOverflowing = () => body.scrollHeight > body.clientHeight + 5;
+
+          function updateToggleVisibility() {
+            if (isOverflowing()) {
+              btn.style.display = '';
+              if (fade) fade.style.display = '';
+            } else {
+              btn.style.display = 'none';
+              if (fade) fade.style.display = 'none';
+            }
+          }
+
+          btn.addEventListener('click', () => {
+            body.classList.toggle('expanded');
+            const expanded = body.classList.contains('expanded');
+            btn.textContent = expanded ? 'Thu gọn' : 'Xem thêm';
+            if (fade) fade.style.display = expanded ? 'none' : '';
+          });
+
+          requestAnimationFrame(updateToggleVisibility);
+          window.addEventListener('resize', updateToggleVisibility);
+        })();
+    </script>
+}

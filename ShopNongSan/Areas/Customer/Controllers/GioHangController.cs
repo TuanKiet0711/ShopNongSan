@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace ShopNongSan.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    [Authorize(Roles = "Customer")] // Chỉ khách hàng mới thao tác giỏ
+    [Authorize(Roles = "Customer,Admin")] // Chỉ khách hàng mới thao tác giỏ
     public class GioHangController : Controller
     {
         private readonly NongSanContext _db;

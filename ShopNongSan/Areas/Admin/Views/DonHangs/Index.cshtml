@@ -116,6 +116,18 @@
                 </li>
             </ul>
         </nav>
+        <form method="get" class="d-flex align-items-center gap-2">
+            <!-- giữ lại các filter hiện tại -->
+            <input type="hidden" name="status" value="@status" />
+            <input type="hidden" name="q" value="@q" />
+            <div class="input-group" style="width: 200px;">
+                <input type="number" name="page" min="1" max="@totalPages" value="@@page" class="form-control" />
+                <button type="submit" class="btn btn-primary btn-nowrap">
+                    <i class="bi bi-box-arrow-in-right"></i> Đi tới
+                </button>
+            </div>
+            <span class="text-muted small">/ @totalPages</span>
+        </form>
     </div>
 }
 

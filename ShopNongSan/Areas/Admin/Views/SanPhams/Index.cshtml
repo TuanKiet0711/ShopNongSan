@@ -22,7 +22,7 @@
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" value="@q" class="form-control"
-                           placeholder="Tên sản phẩm, danh mục, thương hiệu..." />
+                           placeholder="Tên sản phẩm, danh mục, thương hiệu, mô tả..." />
                 </div>
             </div>
 
@@ -72,7 +72,8 @@
     <table class="table table-hover table-bordered align-middle mb-0">
         <thead class="table-success">
             <tr class="text-center">
-                <th style="min-width:260px">Tên</th>
+                <th style="min-width:220px">Tên</th>
+                <th style="min-width:180px">Mô tả</th>
                 <th>Danh mục</th>
                 <th>Thương hiệu</th>
                 <th class="text-center">Giá</th>
@@ -89,18 +90,38 @@
                 : "bg-success";
 
                 <tr>
+                    <!-- Tên -->
                     <td class="fw-semibold">
                         @sp.Ten
                         <div class="text-muted small">#@sp.Id</div>
                     </td>
+
+                    <!-- Mô tả -->
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(sp.MoTa))
+                        {
+                            <div class="text-truncate" style="max-width:180px;" title="@sp.MoTa">
+                                @(sp.MoTa.Length > 100 ? sp.MoTa.Substring(0, 100) + "…" : sp.MoTa)
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">—</span>
+                        }
+                    </td>
+
                     <td class="text-muted">@sp.DanhMuc?.Ten</td>
                     <td class="text-muted">@sp.ThuongHieu?.Ten</td>
                     <td class="text-end fw-semibold">@sp.Gia.ToString("N0") đ</td>
                     <td class="text-center"><span class="badge @stockCls">@sp.SoLuongTon</span></td>
+
+                    <!-- Ảnh -->
                     <td class="text-center">
                         <img src="@ImgUrl(sp.HinhAnh)" alt="@sp.Ten"
                              class="rounded" style="width:60px;height:60px;object-fit:cover" />
                     </td>
+
+                    <!-- Thao tác -->
                     <td class="text-end">
                         <div class="btn-group">
                             <a asp-action="Edit" asp-route-id="@sp.Id" class="btn btn-sm btn-warning text-dark">
@@ -117,7 +138,7 @@
     </table>
 </div>
 
-<!-- PHÂN TRANG + ĐI TỚI TRANG -->
+<!-- PHÂN TRANG -->
 @if (totalPages > 1)
 {
     <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -153,7 +174,7 @@
             </ul>
         </nav>
 
-        <!-- Form đi tới trang (bên phải) -->
+        <!-- Đi tới trang -->
         <form method="get" class="d-flex align-items-center gap-2">
             <input type="hidden" name="q" value="@q" />
             <input type="hidden" name="danhMucId" value="@dm" />
@@ -173,15 +194,13 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
-    <!-- jQuery (cần cho Select2; bỏ qua nếu dự án đã có) -->
+    <!-- jQuery + Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <!-- Select2 -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         $(function () {
-            // Khởi tạo Select2 cho dropdown filter
             $('.select2').select2({
                 placeholder: '-- Tất cả --',
                 allowClear: true,
@@ -194,7 +213,7 @@
 <style>
     .btn-nowrap { white-space: nowrap; }
 
-    /* Ép màu nút nền đầy */
+    /* Màu nút chuẩn */
     .btn-primary {
         background-color: #0d6efd !important;
         border-color: #0d6efd !important;
@@ -217,7 +236,7 @@
         color: #fff !important;
     }
 
-    /* Phân trang xanh dương */
+    /* Phân trang */
     .pagination .page-item.active .page-link {
         background-color: #0d6efd !important;
         border-color: #0d6efd !important;
@@ -229,18 +248,14 @@
         color: #fff !important;
     }
 
-    /* Tối ưu Select2 cho form-control cảm giác đồng bộ */
-    /* Ép chiều cao cho select2 khớp input bootstrap */
+    /* Select2 */
     .select2-container .select2-selection--single {
         height: 38px !important;
     }
-
     .select2-container--default .select2-selection--single .select2-selection__rendered {
         line-height: 38px !important;
     }
-
     .select2-container--default .select2-selection--single .select2-selection__arrow {
         height: 38px !important;
     }
-
 </style>

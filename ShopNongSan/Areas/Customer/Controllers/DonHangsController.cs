@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace ShopNongSan.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    [Authorize(Roles = "Customer")]
+    [Authorize(Roles = "Customer,Admin")]
     public class DonHangsController : Controller
     {
         private readonly NongSanContext _db;
@@ -118,6 +118,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
             if (!ModelState.IsValid)
                 return View("Checkout", model);
 
+            // Cập nhật hồ sơ (giữ nguyên như bạn đã làm)
             var tt = await _db.ThongTinNguoiDungs.FirstOrDefaultAsync(x => x.TaiKhoanId == UserId);
             if (tt == null)
             {
@@ -133,9 +134,8 @@ namespace ShopNongSan.Areas.Customer.Controllers
             using var tx = await _db.Database.BeginTransactionAsync();
             try
             {
-                // (1) Chuẩn bị danh sách sản phẩm
+                // (1) Chuẩn bị dòng hàng (giữ nguyên)
                 List<(int SanPhamId, decimal DonGia, int SoLuong, SanPham? Sp)> lines;
-
                 if (model.IsBuyNow && model.BuyNowSanPhamId.HasValue)
                 {
                     var sp = await _db.SanPhams.FirstOrDefaultAsync(x => x.Id == model.BuyNowSanPhamId.Value);
@@ -157,23 +157,20 @@ namespace ShopNongSan.Areas.Customer.Controllers
                         TempData["toastType"] = "warning";
                         return RedirectToAction("Index", "GioHang", new { area = "Customer" });
                     }
-
                     var items = await _db.GioHangChiTiets
                         .Where(x => x.GioHangId == cart.Id)
                         .Include(x => x.SanPham)
                         .ToListAsync();
-
                     if (items.Count == 0)
                     {
                         TempData["toast"] = "Giỏ hàng trống.";
                         TempData["toastType"] = "warning";
                         return RedirectToAction("Index", "GioHang", new { area = "Customer" });
                     }
-
                     lines = items.Select(i => (i.SanPhamId, i.DonGia, i.SoLuong, i.SanPham)).ToList();
                 }
 
-                // (2) Kiểm tra tồn kho
+                // (2) Kiểm tra tồn kho (giữ nguyên)
                 foreach (var l in lines)
                 {
                     if (l.Sp == null)
@@ -190,20 +187,28 @@ namespace ShopNongSan.Areas.Customer.Controllers
                     }
                 }
 
-                // (3) Tạo đơn
+                // (3) Tạo đơn + LƯU SNAPSHOT CHECKOUT
                 var tong = lines.Sum(l => l.DonGia * l.SoLuong);
                 string code = NewOrderCode();
                 while (await _db.DonHangs.AnyAsync(d => d.MaDonHang == code))
                     code = NewOrderCode();
 
+                var now = DateTime.Now; // hoặc DateTime.UtcNow tuỳ dự án
                 var order = new DonHang
                 {
                     MaDonHang = code,
                     TaiKhoanId = UserId,
                     TongTien = tong,
                     TrangThai = "Pending",
-                    NgayDat = DateTime.Now,
-                    NgayGiao = model.NgayGiao
+                    NgayDat = now,
+                    NgayGiao = model.NgayGiao,
+
+                    // SNAPSHOT từ CheckoutVM
+                    HoTen = model.HoTen,
+                    SoDienThoai = model.SoDienThoai,
+                    DiaChi = model.DiaChi,
+                    GhiChu = model.GhiChu,
+                    PhuongThucThanhToan = model.PhuongThucThanhToan
                 };
                 _db.DonHangs.Add(order);
                 await _db.SaveChangesAsync();
@@ -216,7 +221,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
                         SanPhamId = l.SanPhamId,
                         DonGia = l.DonGia,
                         SoLuong = l.SoLuong,
-                        NgayDat = DateTime.Now
+                        NgayDat = now
                     });
                     l.Sp!.SoLuongTon -= l.SoLuong;
                 }
@@ -234,7 +239,6 @@ namespace ShopNongSan.Areas.Customer.Controllers
 
                 await tx.CommitAsync();
 
-                TempData["pttt"] = model.PhuongThucThanhToan;
                 TempData["toast"] = "Đặt hàng thành công!";
                 TempData["toastType"] = "success";
 

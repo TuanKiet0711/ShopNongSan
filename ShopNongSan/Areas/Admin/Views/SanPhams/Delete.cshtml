@@ -22,6 +22,11 @@
                         <h5 class="fw-bold">@Model.Ten</h5>
                         <div>Danh mục: @Model.DanhMuc?.Ten</div>
                         <div>Thương hiệu: @Model.ThuongHieu?.Ten</div>
+                        @if (!string.IsNullOrWhiteSpace(Model.MoTa))
+                        {
+                            <div class="mt-2"><strong>Mô tả:</strong> @Model.MoTa</div>
+                        }
+
                         <div>Giá: @Model.Gia.ToString("N0") đ</div>
                         <div>Số lượng tồn: @Model.SoLuongTon</div>
                     </div>

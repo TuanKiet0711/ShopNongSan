@@ -331,6 +331,25 @@
         .bg-soft {
             background: linear-gradient(135deg, #f8f9fa, #e8f5e9);
         }
+        /* Nút xem chi tiết: xanh dương tím nhẹ, khác hẳn 2 nút kia */
+        .btn-view {
+            background: linear-gradient(135deg, #4f46e5, #06b6d4); /* indigo → cyan */
+            border: none;
+            border-radius: 15px;
+            padding: 10px 20px;
+            color: #fff;
+            font-weight: 600;
+            transition: .25s;
+            font-size: .95rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+            .btn-view:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-hover);
+                color: #fff;
+            }
+
     </style>
 }
 
@@ -377,29 +396,53 @@
                                     <div><strong>Thương hiệu:</strong> @(sp.ThuongHieu?.Ten ?? "Đang cập nhật")</div>
                                 </div>
 
-                                <div class="mt-auto d-flex flex-column gap-3">
-                                    <!-- Mua ngay (giữ submit thường) -->
+                                @{
+                                    bool isCustomer = User?.Identity?.IsAuthenticated == true && User.IsInRole("Customer");
+                                }
+                                <div class="product-actions">
+                                    <!-- Mua ngay: giữ nguyên submit thường -->
                                     <form asp-area="Customer" asp-controller="DonHangs" asp-action="BuyNow" method="post" class="buy-now-form">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@sp.Id" />
                                         <input type="hidden" name="qty" value="1" />
-                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="hidden" name="returnUrl" value="@(Context?.Request?.Path + Context?.Request?.QueryString)" />
                                         <button type="submit" class="btn btn-buy-now w-100">
-                                            <i class="bi bi-lightning-charge-fill me-1"></i>Mua ngay
+                                            <i class="bi bi-lightning-charge-fill me-2"></i>Mua ngay
                                         </button>
                                     </form>
+                                    <a asp-area="Customer" asp-controller="SanPhams" asp-action="Details" asp-route-id="@sp.Id"
+                                       class="btn btn-view w-100">
+                                        <i class="bi bi-eye me-2"></i>Xem chi tiết
+                                    </a>
 
-                                    <!-- Thêm vào giỏ (AJAX) -->
-                                    <form asp-area="Customer" asp-controller="GioHang" asp-action="AddAjax"
-                                          method="post" class="add-cart-form" data-ajax="true">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@sp.Id" />
-                                        <input type="hidden" name="qty" value="1" />
-                                        <button type="submit" class="btn btn-add-cart w-100">
-                                            <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ
-                                        </button>
-                                    </form>
+                                    @if (isCustomer)
+                                    {
+                                        <!-- ĐÃ đăng nhập: dùng AJAX, không reload -->
+                                        <form asp-area="Customer" asp-controller="GioHang" asp-action="AddAjax" method="post"
+                                              class="add-cart-form" data-ajax="true">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@sp.Id" />
+                                            <input type="hidden" name="qty" value="1" />
+                                            <button type="submit" class="btn btn-add-cart w-100">
+                                                <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <!-- CHƯA đăng nhập: post thường -> controller Add sẽ redirect Login -->
+                                        <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@sp.Id" />
+                                            <input type="hidden" name="qty" value="1" />
+                                            <input type="hidden" name="returnUrl" value="@(Context?.Request?.Path + Context?.Request?.QueryString)" />
+                                            <button type="submit" class="btn btn-add-cart w-100">
+                                                <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
+                                            </button>
+                                        </form>
+                                    }
                                 </div>
+
                             </div>
                         </div>
                     </div>

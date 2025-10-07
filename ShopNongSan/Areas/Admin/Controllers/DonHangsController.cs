@@ -8,6 +8,7 @@ namespace ShopNongSan.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin,Staff")]
+    [Route("Admin/[controller]")] // cố định prefix: /Admin/DonHangs
     public class DonHangsController : Controller
     {
         private readonly NongSanContext _db;
@@ -18,33 +19,57 @@ namespace ShopNongSan.Areas.Admin.Controllers
             new[] { "Pending", "Confirmed", "Shipped", "Completed", "Cancelled" };
 
         // GET: /Admin/DonHangs
-        public async Task<IActionResult> Index(string? status, string? q)
+        // DÙNG 1 action Index DUY NHẤT
+        [HttpGet("")]
+        public async Task<IActionResult> Index(string? status, string? q, int page = 1, int pageSize = 8)
+
         {
             var query = _db.DonHangs
+                .AsNoTracking()
                 .Include(d => d.TaiKhoan)
-                .OrderByDescending(d => d.Id)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(status))
                 query = query.Where(d => d.TrangThai == status);
 
             if (!string.IsNullOrWhiteSpace(q))
-                query = query.Where(d => d.MaDonHang.Contains(q));
+            {
+                q = q.Trim();
+                query = query.Where(d =>
+                       d.MaDonHang.Contains(q)
+                    || (d.HoTen != null && d.HoTen.Contains(q))
+                    || (d.TaiKhoan != null && d.TaiKhoan.HoTen.Contains(q))
+                );
+            }
 
-            ViewBag.StatusList = new SelectList(AllowedStatuses);
-            ViewBag.FilterStatus = status;
-            ViewBag.Q = q;
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            if (totalPages == 0) totalPages = 1;
+            page = Math.Clamp(page, 1, totalPages);
 
-            var list = await query.Take(500).ToListAsync();
-            return View(list);
+            var items = await query
+                .OrderByDescending(d => d.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.Q = q ?? "";
+            ViewBag.Status = status ?? "";
+            ViewBag.StatusList = new SelectList(AllowedStatuses, status);
+
+            return View(items);
         }
 
         // GET: /Admin/DonHangs/Details/5
+        [HttpGet("Details/{id:long}")]
         public async Task<IActionResult> Details(long id)
         {
             var don = await _db.DonHangs
                 .Include(d => d.TaiKhoan)
-                    .ThenInclude(tk => tk.ThongTinNguoiDung) // 👈 thêm dòng này
+                    .ThenInclude(tk => tk.ThongTinNguoiDung)
                 .Include(d => d.DonHangChiTiets)
                     .ThenInclude(ct => ct.SanPham)
                 .FirstOrDefaultAsync(d => d.Id == id);
@@ -54,11 +79,12 @@ namespace ShopNongSan.Areas.Admin.Controllers
         }
 
         // GET: /Admin/DonHangs/Edit/5
+        [HttpGet("Edit/{id:long}")]
         public async Task<IActionResult> Edit(long id)
         {
             var don = await _db.DonHangs
                 .Include(d => d.TaiKhoan)
-                    .ThenInclude(tk => tk.ThongTinNguoiDung) // 👈 thêm dòng này
+                    .ThenInclude(tk => tk.ThongTinNguoiDung)
                 .Include(d => d.DonHangChiTiets)
                     .ThenInclude(ct => ct.SanPham)
                 .FirstOrDefaultAsync(d => d.Id == id);
@@ -69,7 +95,7 @@ namespace ShopNongSan.Areas.Admin.Controllers
         }
 
         // POST: /Admin/DonHangs/Edit/5
-        [HttpPost]
+        [HttpPost("Edit/{id:long}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(long id, string trangThai)
         {
@@ -91,15 +117,13 @@ namespace ShopNongSan.Areas.Admin.Controllers
             using var tx = await _db.Database.BeginTransactionAsync();
             try
             {
-                // Đổi sang Cancelled (từ trạng thái khác) → hoàn kho
+                // Sang Cancelled (từ trạng thái khác) → cộng kho
                 if (trangThai == "Cancelled" &&
                     !string.Equals(don.TrangThai, "Cancelled", StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var ct in don.DonHangChiTiets)
-                    {
                         if (ct.SanPham != null)
                             ct.SanPham.SoLuongTon += ct.SoLuong;
-                    }
                 }
 
                 // Bỏ Cancelled (Cancel → khác) → trừ kho lại (nếu đủ)
@@ -116,10 +140,8 @@ namespace ShopNongSan.Areas.Admin.Controllers
                         }
                     }
                     foreach (var ct in don.DonHangChiTiets)
-                    {
                         if (ct.SanPham != null)
                             ct.SanPham.SoLuongTon -= ct.SoLuong;
-                    }
                 }
 
                 don.TrangThai = trangThai;
@@ -141,18 +163,20 @@ namespace ShopNongSan.Areas.Admin.Controllers
         }
 
         // GET: /Admin/DonHangs/Delete/5
+        [HttpGet("Delete/{id:long}")]
         public async Task<IActionResult> Delete(long id)
         {
             var don = await _db.DonHangs
                 .Include(d => d.TaiKhoan)
-                    .ThenInclude(tk => tk.ThongTinNguoiDung) // 👈 thêm dòng này
+                    .ThenInclude(tk => tk.ThongTinNguoiDung)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (don == null) return NotFound();
             return View(don);
         }
 
         // POST: /Admin/DonHangs/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost("Delete/{id:long}")]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {

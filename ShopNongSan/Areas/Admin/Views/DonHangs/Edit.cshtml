@@ -1,65 +1,187 @@
 ﻿@model ShopNongSan.Models.DonHang
 @{
     ViewData["Title"] = "Sửa đơn " + Model.MaDonHang;
-}
-<h2 class="mb-3">Sửa đơn: @Model.MaDonHang</h2>
 
-<form asp-action="Edit" method="post" class="row g-3">
+    string PtttText(string? v)
+        => v == "BANK" ? "Chuyển khoản"
+         : v == "COD" ? "Thanh toán khi nhận (COD)"
+         : "-";
+
+    string FormatDateTime(DateTime? dt)
+        => dt.HasValue ? dt.Value.ToString("dd/MM/yyyy HH:mm") : "-";
+
+    string FormatDate(DateTime? d)
+        => d.HasValue ? d.Value.ToString("dd/MM/yyyy") : "-";
+}
+
+<div class="d-flex align-items-center mb-3" style="gap:.5rem">
+    <h2 class="mb-0">Sửa đơn: @Model.MaDonHang</h2>
+    <span class="badge bg-secondary ms-2">@Model.TrangThai</span>
+    <div class="ms-auto">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-eye"></i> Xem chi tiết
+        </a>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-list"></i> Danh sách
+        </a>
+    </div>
+</div>
+
+<form asp-action="Edit" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" name="id" value="@Model.Id" />
 
-    <div class="col-12 col-md-4">
-        <label class="form-label">Trạng thái</label>
-        <select name="trangThai" class="form-select" asp-items="ViewBag.StatusList"></select>
-        <div class="form-text">Pending → Confirmed → Shipped → Completed / Cancelled</div>
-    </div>
+    <div class="row g-3">
+        <!-- CỘT TRÁI: THÔNG TIN ĐẶT HÀNG (READ-ONLY) -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="bi bi-receipt me-2"></i>Thông tin đơn</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Mã đơn</label>
+                            <input class="form-control" value="@Model.MaDonHang" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Trạng thái hiện tại</label>
+                            <input class="form-control" value="@Model.TrangThai" disabled />
+                        </div>
 
-    <div class="col-12 col-md-4">
-        <label class="form-label">Ngày đặt</label>
-        <input class="form-control" value="@Model.NgayDat.ToString("dd/MM/yyyy HH:mm")" disabled />
-        <div class="form-text">Ngày khách đặt hàng (không thể sửa)</div>
-    </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày đặt</label>
+                            <input class="form-control" value="@FormatDateTime(Model.NgayDat)" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày giao dự kiến</label>
+                            <input class="form-control" value="@FormatDate(Model.NgayGiao)" disabled />
+                        </div>
 
-    <div class="col-12 col-md-4">
-        <label class="form-label">Ngày giao dự kiến</label>
-        <input asp-for="NgayGiao" type="date" class="form-control" />
-        <span asp-validation-for="NgayGiao" class="text-danger"></span>
-    </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tổng tiền</label>
+                            <input class="form-control" value="@Model.TongTien.ToString("N0") đ" disabled />
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <div class="col-12">
-        <button class="btn btn-primary">Lưu</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="bi bi-person-vcard me-2"></i>Thông tin đặt hàng (snapshot)</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Họ tên</label>
+                            <input class="form-control"
+                                   value="@(string.IsNullOrWhiteSpace(Model.HoTen) ? (Model.TaiKhoan?.HoTen ?? "-") : Model.HoTen)"
+                                   disabled />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Số điện thoại</label>
+                            <input class="form-control"
+                                   value="@(string.IsNullOrWhiteSpace(Model.SoDienThoai) ? (Model.TaiKhoan?.ThongTinNguoiDung?.SoDienThoai ?? "-") : Model.SoDienThoai)"
+                                   disabled />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Địa chỉ</label>
+                            <textarea class="form-control" rows="2" disabled>@(string.IsNullOrWhiteSpace(Model.DiaChi) ? (Model.TaiKhoan?.ThongTinNguoiDung?.DiaChi ?? "-") : Model.DiaChi)</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Phương thức thanh toán</label>
+                            @{
+                                var pttt = !string.IsNullOrWhiteSpace(Model.PhuongThucThanhToan)
+                                ? Model.PhuongThucThanhToan
+                                : Model.TaiKhoan?.ThongTinNguoiDung?.PhuongThucThanhToan;
+                            }
+                            <input class="form-control" value="@PtttText(pttt)" disabled />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Ghi chú</label>
+                            <input class="form-control"
+                                   value="@(string.IsNullOrWhiteSpace(Model.GhiChu) ? (Model.TaiKhoan?.ThongTinNguoiDung?.GhiChu ?? "") : Model.GhiChu)"
+                                   disabled />
+                        </div>
+                    </div>
+                    <div class="form-text mt-2">
+                        * Đây là thông tin snapshot lúc khách đặt hàng (không chỉnh sửa tại đây).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: CHỈNH SỬA ĐƯỢC -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="bi bi-pencil-square me-2"></i>Cập nhật</h5>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="trangThai" class="form-select" asp-items="ViewBag.StatusList"></select>
+                            <div class="form-text">Khớp các giá trị: Pending / Confirmed / Shipped / Completed / Cancelled</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Ngày giao dự kiến</label>
+                            <!-- Nếu bạn MUỐN cho chỉnh, giữ asp-for (nhớ xử lý ở POST).
+                                 Nếu KHÔNG muốn chỉnh, đổi sang disabled như cột trái. -->
+                            <input asp-for="NgayGiao" type="date" class="form-control"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="NgayGiao" class="text-danger"></span>
+                            <div class="form-text">Tùy chọn, có thể để trống.</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 d-flex" style="gap:.5rem">
+                        <button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Lưu</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="bi bi-bag-check me-2"></i>Sản phẩm trong đơn</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead class="table-success text-center">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-center">SL</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ct in Model.DonHangChiTiets)
+                                {
+                                    <tr>
+                                        <td>@ct.SanPham?.Ten</td>
+                                        <td class="text-end">@ct.DonGia.ToString("N0") đ</td>
+                                        <td class="text-center">@ct.SoLuong</td>
+                                        <td class="text-end">@((ct.DonGia * ct.SoLuong).ToString("N0")) đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end">Tổng cộng</th>
+                                    <th class="text-end">@Model.TongTien.ToString("N0") đ</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="form-text mt-2">* Chỉnh sửa số lượng/sản phẩm nên thực hiện bằng thao tác quản trị riêng.</div>
+                </div>
+            </div>
+        </div>
     </div>
 </form>
 
-<hr />
-<h5>Sản phẩm</h5>
-<div class="table-responsive">
-    <table class="table table-bordered align-middle">
-        <thead>
-            <tr>
-                <th>Sản phẩm</th>
-                <th class="text-end">Đơn giá</th>
-                <th class="text-center">SL</th>
-                <th class="text-end">Thành tiền</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var ct in Model.DonHangChiTiets)
-            {
-                <tr>
-                    <td>@ct.SanPham?.Ten</td>
-                    <td class="text-end">@ct.DonGia.ToString("N0") đ</td>
-                    <td class="text-center">@ct.SoLuong</td>
-                    <td class="text-end">@((ct.DonGia * ct.SoLuong).ToString("N0")) đ</td>
-                </tr>
-            }
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="3" class="text-end">Tổng cộng</th>
-                <th class="text-end">@Model.TongTien.ToString("N0") đ</th>
-            </tr>
-        </tfoot>
-    </table>
-</div>
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+}

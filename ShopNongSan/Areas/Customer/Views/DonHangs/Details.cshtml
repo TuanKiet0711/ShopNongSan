@@ -2,27 +2,58 @@
 @{
     ViewData["Title"] = "Chi tiết đơn " + Model.MaDonHang;
 }
-<h2 class="mb-3">Đơn: @Model.MaDonHang</h2>
 
+<h2 class="mb-3">Đơn: @Model.MaDonHang</h2>
 <p><b>Trạng thái:</b> @Model.TrangThai</p>
 
-@{
-    var pttt = ViewBag.PhuongThucThanhToan as string ?? TempData["pttt"] as string;
-    if (!string.IsNullOrEmpty(pttt))
-    {
-        <p><b>Phương thức thanh toán:</b> @(pttt == "BANK" ? "Chuyển khoản" : "Thanh toán khi nhận")</p>
-    }
-}
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Thông tin đặt hàng</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5">Họ tên người nhận</dt>
+                    <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.HoTen) ? Model.HoTen : "-")</dd>
 
-@if (string.Equals(Model.TrangThai, "Pending", StringComparison.OrdinalIgnoreCase))
-{
-    <form asp-action="Cancel" method="post" class="mb-3 d-inline"
-          onsubmit="return confirm('Bạn chắc muốn hủy đơn này?')">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="id" value="@Model.Id" />
-        <button type="submit" class="btn btn-danger">Hủy đơn</button>
-    </form>
-}
+                    <dt class="col-5">Số điện thoại</dt>
+                    <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.SoDienThoai) ? Model.SoDienThoai : "-")</dd>
+
+                    <dt class="col-5">Địa chỉ</dt>
+                    <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.DiaChi) ? Model.DiaChi : "-")</dd>
+
+                    <dt class="col-5">Ghi chú</dt>
+                    <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.GhiChu) ? Model.GhiChu : "-")</dd>
+
+                    <dt class="col-5">Phương thức thanh toán</dt>
+                    <dd class="col-7">
+                        @{
+                            var pttt = Model.PhuongThucThanhToan;
+                            string ptttText = pttt == "BANK" ? "Chuyển khoản ngân hàng"
+                            : pttt == "COD" ? "Thanh toán khi nhận (COD)"
+                            : "-";
+                        }
+                        @ptttText
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Thời gian</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5">Ngày đặt</dt>
+                    <dd class="col-7">@((Model.NgayDat?.ToString("dd/MM/yyyy HH:mm")) ?? "-")</dd>
+
+                    <dt class="col-5">Ngày giao mong muốn</dt>
+                    <dd class="col-7">@((Model.NgayGiao?.ToString("dd/MM/yyyy")) ?? "-")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
 
 <table class="table table-bordered align-middle">
     <thead>
@@ -51,5 +82,15 @@
         </tr>
     </tfoot>
 </table>
+
+@if (string.Equals(Model.TrangThai, "Pending", StringComparison.OrdinalIgnoreCase))
+{
+    <form asp-action="Cancel" method="post" class="mb-3 d-inline"
+          onsubmit="return confirm('Bạn chắc muốn hủy đơn này?')">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Hủy đơn</button>
+    </form>
+}
 
 <a asp-action="Index" class="btn btn-outline-secondary">Quay lại danh sách</a>

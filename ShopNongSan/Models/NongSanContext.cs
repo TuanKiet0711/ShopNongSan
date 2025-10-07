@@ -39,7 +39,7 @@ public partial class NongSanContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=ADMIN\\SQLEXPRESS;Database=NongSan;Trusted_Connection=True;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=TUANKIETLEE\\SQLSERVERNEW;Database=NongSan;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,9 +95,16 @@ public partial class NongSanContext : DbContext
 
             entity.HasIndex(e => e.MaDonHang, "UQ__DonHang__129584ACA72906BD").IsUnique();
 
+            entity.Property(e => e.DiaChi).HasMaxLength(200);
+            entity.Property(e => e.GhiChu).HasMaxLength(300);
+            entity.Property(e => e.HoTen).HasMaxLength(100);
             entity.Property(e => e.MaDonHang)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+            entity.Property(e => e.NgayDat).HasColumnType("datetime");
+            entity.Property(e => e.NgayGiao).HasColumnType("datetime");
+            entity.Property(e => e.PhuongThucThanhToan).HasMaxLength(20);
+            entity.Property(e => e.SoDienThoai).HasMaxLength(20);
             entity.Property(e => e.TongTien).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.TrangThai)
                 .HasMaxLength(20)
@@ -116,6 +123,8 @@ public partial class NongSanContext : DbContext
             entity.ToTable("DonHangChiTiet");
 
             entity.Property(e => e.DonGia).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.NgayDat).HasColumnType("datetime");
+            entity.Property(e => e.NgayGiao).HasColumnType("datetime");
 
             entity.HasOne(d => d.DonHang).WithMany(p => p.DonHangChiTiets)
                 .HasForeignKey(d => d.DonHangId)
@@ -165,6 +174,7 @@ public partial class NongSanContext : DbContext
 
             entity.Property(e => e.Gia).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.HinhAnh).HasMaxLength(300);
+            entity.Property(e => e.MoTa).HasMaxLength(500);
             entity.Property(e => e.Ten).HasMaxLength(150);
 
             entity.HasOne(d => d.DanhMuc).WithMany(p => p.SanPhams)
@@ -205,6 +215,8 @@ public partial class NongSanContext : DbContext
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.DiaChi).HasMaxLength(200);
+            entity.Property(e => e.GhiChu).HasMaxLength(300);
+            entity.Property(e => e.PhuongThucThanhToan).HasMaxLength(20);
             entity.Property(e => e.SoDienThoai).HasMaxLength(20);
 
             entity.HasOne(d => d.TaiKhoan).WithOne(p => p.ThongTinNguoiDung)

@@ -28,15 +28,18 @@ namespace ShopNongSan.Controllers
             var startDate = today.AddDays(-6);
 
             var statsByDay = _context.DonHangs
-                .Where(d => d.NgayDat.Date >= startDate && d.TrangThai != "Cancelled")
-                .GroupBy(d => d.NgayDat.Date)
-                .Select(g => new
-                {
-                    Date = g.Key,
-                    TotalRevenue = g.Sum(x => x.TongTien),
-                    TotalOrders = g.Count()
-                })
-                .ToList();
+    .Where(d => d.NgayDat.HasValue
+             && d.NgayDat.Value.Date >= startDate.Date
+             && d.TrangThai != "Cancelled")
+    .GroupBy(d => d.NgayDat.Value.Date)
+    .Select(g => new
+    {
+        Date = g.Key,
+        TotalRevenue = g.Sum(x => x.TongTien),
+        TotalOrders = g.Count()
+    })
+    .ToList();
+
 
             // Danh sách đủ 7 ngày liên tục
             var labels = Enumerable.Range(0, 7)
