@@ -7,7 +7,6 @@ namespace ShopNongSan.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin,Staff")]
-    // [Authorize(Policy = "AdminOnly")]
     public class DanhMucsController : Controller
     {
         private readonly NongSanContext _context;
@@ -63,10 +62,18 @@ namespace ShopNongSan.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            _context.DanhMucs.Add(model);
-            await _context.SaveChangesAsync();
-            SetToast("Tạo danh mục thành công");
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _context.DanhMucs.Add(model);
+                await _context.SaveChangesAsync();
+                SetToast("Tạo danh mục thành công");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                SetToast("Lỗi khi tạo: " + ex.Message, "danger");
+                return View(model);
+            }
         }
 
         // ===== EDIT =====
@@ -88,10 +95,18 @@ namespace ShopNongSan.Areas.Admin.Controllers
             var dm = await _context.DanhMucs.FindAsync(id);
             if (dm == null) return NotFound();
 
-            dm.Ten = model.Ten;
-            await _context.SaveChangesAsync();
-            SetToast("Cập nhật danh mục thành công");
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                dm.Ten = model.Ten;
+                await _context.SaveChangesAsync();
+                SetToast("Cập nhật danh mục thành công");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                SetToast("Lỗi khi cập nhật: " + ex.Message, "danger");
+                return View(model);
+            }
         }
 
         // ===== DELETE =====
@@ -110,9 +125,16 @@ namespace ShopNongSan.Areas.Admin.Controllers
             var dm = await _context.DanhMucs.FindAsync(id);
             if (dm == null) return NotFound();
 
-            _context.DanhMucs.Remove(dm);
-            await _context.SaveChangesAsync();
-            SetToast("Đã xoá danh mục");
+            try
+            {
+                _context.DanhMucs.Remove(dm);
+                await _context.SaveChangesAsync();
+                SetToast("Đã xoá danh mục");
+            }
+            catch (Exception ex)
+            {
+                SetToast("Không thể xoá: " + ex.Message, "danger");
+            }
             return RedirectToAction(nameof(Index));
         }
 

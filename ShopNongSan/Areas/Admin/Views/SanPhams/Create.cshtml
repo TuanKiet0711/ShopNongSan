@@ -18,7 +18,7 @@
                         <div class="ns-section-title">Thông tin sản phẩm</div>
 
                         <div class="mb-3">
-                            <label class="form-label">Tên <span class="text-danger">*</span></label>
+                            <label class="form-label">Tên <span class="text-danger"></span></label>
                             <input asp-for="Ten" class="form-control ns-control"
                                    placeholder="Nhập tên sản phẩm..." required />
                             <span asp-validation-for="Ten" class="text-danger small"></span>
@@ -27,7 +27,7 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Danh mục <span class="text-danger">*</span></label>
+                                <label class="form-label">Danh mục <span class="text-danger"></span></label>
                                 <select asp-for="DanhMucId" asp-items="ViewBag.DanhMucId"
                                         class="form-select select2 ns-control"
                                         data-placeholder="-- Chọn danh mục --" required>
@@ -50,7 +50,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Mô tả (tối đa 500 ký tự)</label>
+                            <label class="form-label">Mô tả</label>
                             <textarea asp-for="MoTa" class="form-control" rows="4" maxlength="500"
                                       placeholder="Nhập mô tả sản phẩm ngắn gọn..."></textarea>
                             <span asp-validation-for="MoTa" class="text-danger small"></span>
@@ -58,7 +58,7 @@
 
                         <div class="row g-3 mt-1">
                             <div class="col-md-6">
-                                <label class="form-label">Giá (đ) <span class="text-danger">*</span></label>
+                                <label class="form-label">Giá <span class="text-danger"></span></label>
                                 <input type="text" id="GiaDisplay" class="form-control ns-control"
                                        inputmode="numeric" placeholder="Nhập giá" required />
                                 <input asp-for="Gia" type="hidden" id="Gia" />
@@ -66,7 +66,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Số lượng tồn <span class="text-danger">*</span></label>
+                                <label class="form-label">Số lượng tồn <span class="text-danger"></span></label>
                                 <input asp-for="SoLuongTon" type="number" min="0"
                                        class="form-control ns-control" placeholder="Nhập số lượng tồn" required />
                                 <span asp-validation-for="SoLuongTon" class="text-danger small"></span>
@@ -88,7 +88,7 @@
                                     <label class="form-label">Hình ảnh</label>
                                     <input type="file" name="HinhAnhFile" id="HinhAnhFile"
                                            class="form-control ns-control" accept=".jpg,.jpeg,.png,.webp,.gif" />
-                                    <div class="form-text">Chọn ảnh .jpg, .jpeg, .png, .webp, .gif (tối đa 5MB).</div>
+                                 
                                     <span asp-validation-for="HinhAnh" class="text-danger small"></span>
                                 </div>
                             </div>

@@ -37,16 +37,14 @@ namespace ShopNongSan.Areas.Customer.Controllers
         [HttpGet]
         public async Task<IActionResult> Checkout(int? id = null, int qty = 1)
         {
-            var tk = await _db.TaiKhoans.FirstAsync(x => x.Id == UserId);
-            var tt = await _db.ThongTinNguoiDungs.FirstOrDefaultAsync(x => x.TaiKhoanId == UserId);
-
+            // ❌ KHÔNG tự động điền từ hồ sơ nữa: tạo VM trống
             var vm = new CheckoutVM
             {
-                HoTen = tk.HoTen,
-                SoDienThoai = tt?.SoDienThoai ?? "",
-                DiaChi = tt?.DiaChi ?? "",
-                GhiChu = tt?.GhiChu ?? "",
-                NgayGiao = DateTime.Today.AddDays(1)   // mặc định ngày mai
+                HoTen = "",
+                SoDienThoai = "",
+                DiaChi = "",
+                GhiChu = "",
+                NgayGiao = DateTime.Today.AddDays(1) // mặc định ngày mai (có thể đổi)
             };
 
             // MUA NGAY
@@ -118,7 +116,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
             if (!ModelState.IsValid)
                 return View("Checkout", model);
 
-            // Cập nhật hồ sơ (giữ nguyên như bạn đã làm)
+            // Cập nhật hồ sơ (giữ nguyên theo yêu cầu hiện tại)
             var tt = await _db.ThongTinNguoiDungs.FirstOrDefaultAsync(x => x.TaiKhoanId == UserId);
             if (tt == null)
             {
@@ -134,7 +132,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
             using var tx = await _db.Database.BeginTransactionAsync();
             try
             {
-                // (1) Chuẩn bị dòng hàng (giữ nguyên)
+                // (1) Chuẩn bị dòng hàng
                 List<(int SanPhamId, decimal DonGia, int SoLuong, SanPham? Sp)> lines;
                 if (model.IsBuyNow && model.BuyNowSanPhamId.HasValue)
                 {
@@ -170,7 +168,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
                     lines = items.Select(i => (i.SanPhamId, i.DonGia, i.SoLuong, i.SanPham)).ToList();
                 }
 
-                // (2) Kiểm tra tồn kho (giữ nguyên)
+                // (2) Kiểm tra tồn kho
                 foreach (var l in lines)
                 {
                     if (l.Sp == null)
@@ -187,23 +185,22 @@ namespace ShopNongSan.Areas.Customer.Controllers
                     }
                 }
 
-                // (3) Tạo đơn + LƯU SNAPSHOT CHECKOUT
+                // (3) Tạo đơn + snapshot
                 var tong = lines.Sum(l => l.DonGia * l.SoLuong);
                 string code = NewOrderCode();
                 while (await _db.DonHangs.AnyAsync(d => d.MaDonHang == code))
                     code = NewOrderCode();
 
-                var now = DateTime.Now; // hoặc DateTime.UtcNow tuỳ dự án
+                var now = DateTime.Now;
                 var order = new DonHang
                 {
                     MaDonHang = code,
                     TaiKhoanId = UserId,
                     TongTien = tong,
-                    TrangThai = "Pending",
+                    TrangThai = "Chờ xử lý",
                     NgayDat = now,
                     NgayGiao = model.NgayGiao,
 
-                    // SNAPSHOT từ CheckoutVM
                     HoTen = model.HoTen,
                     SoDienThoai = model.SoDienThoai,
                     DiaChi = model.DiaChi,
@@ -290,9 +287,9 @@ namespace ShopNongSan.Areas.Customer.Controllers
 
             if (don == null) return NotFound();
 
-            if (!string.Equals(don.TrangThai, "Pending", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(don.TrangThai, "Chờ xử lý", StringComparison.OrdinalIgnoreCase))
             {
-                TempData["toast"] = "Chỉ hủy được khi đơn đang Chờ xác nhận (Pending).";
+                TempData["toast"] = "Chỉ hủy được khi đơn đang Chờ xử lý.";
                 TempData["toastType"] = "warning";
                 return RedirectToAction(nameof(Details), new { id });
             }
@@ -304,7 +301,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
                     if (ct.SanPham != null)
                         ct.SanPham.SoLuongTon += ct.SoLuong;
 
-                don.TrangThai = "Cancelled";
+                don.TrangThai = "Đã hủy";
                 await _db.SaveChangesAsync();
                 await tx.CommitAsync();
 

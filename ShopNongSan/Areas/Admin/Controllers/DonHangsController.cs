@@ -8,21 +8,19 @@ namespace ShopNongSan.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin,Staff")]
-    [Route("Admin/[controller]")] // cố định prefix: /Admin/DonHangs
+    [Route("Admin/[controller]")]
     public class DonHangsController : Controller
     {
         private readonly NongSanContext _db;
         public DonHangsController(NongSanContext db) => _db = db;
 
-        // Khớp với CHECK constraint trong DB
+        // Khớp với CHECK constraint trong DB (tiếng Việt)
         private static readonly string[] AllowedStatuses =
-            new[] { "Pending", "Confirmed", "Shipped", "Completed", "Cancelled" };
+            new[] { "Chờ xử lý", "Đã xác nhận", "Đang giao", "Hoàn tất", "Đã hủy" };
 
         // GET: /Admin/DonHangs
-        // DÙNG 1 action Index DUY NHẤT
         [HttpGet("")]
         public async Task<IActionResult> Index(string? status, string? q, int page = 1, int pageSize = 8)
-
         {
             var query = _db.DonHangs
                 .AsNoTracking()
@@ -117,17 +115,18 @@ namespace ShopNongSan.Areas.Admin.Controllers
             using var tx = await _db.Database.BeginTransactionAsync();
             try
             {
-                // Sang Cancelled (từ trạng thái khác) → cộng kho
-                if (trangThai == "Cancelled" &&
-                    !string.Equals(don.TrangThai, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                // Sang "Đã hủy" (từ trạng thái khác) → cộng kho
+                if (trangThai == "Đã hủy" &&
+                    !string.Equals(don.TrangThai, "Đã hủy", StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var ct in don.DonHangChiTiets)
                         if (ct.SanPham != null)
                             ct.SanPham.SoLuongTon += ct.SoLuong;
                 }
 
-                // Bỏ Cancelled (Cancel → khác) → trừ kho lại (nếu đủ)
-                if (don.TrangThai == "Cancelled" && trangThai != "Cancelled")
+                // Bỏ "Đã hủy" → trừ kho lại (nếu đủ)
+                if (string.Equals(don.TrangThai, "Đã hủy", StringComparison.OrdinalIgnoreCase) &&
+                    trangThai != "Đã hủy")
                 {
                     foreach (var ct in don.DonHangChiTiets)
                     {
@@ -148,15 +147,15 @@ namespace ShopNongSan.Areas.Admin.Controllers
                 await _db.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                TempData["toast"] = "Đã cập nhật trạng thái đơn.";
-                TempData["toastType"] = "success";
+                TempData["ToastMessage"] = "Đã cập nhật trạng thái đơn.";
+                TempData["ToastType"] = "success";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                TempData["toast"] = "Lỗi khi cập nhật: " + ex.Message;
-                TempData["toastType"] = "danger";
+                TempData["ToastMessage"] = "Lỗi khi cập nhật: " + ex.Message;
+                TempData["ToastType"] = "danger";
                 ViewBag.StatusList = new SelectList(AllowedStatuses, don.TrangThai);
                 return View(don);
             }
@@ -186,10 +185,10 @@ namespace ShopNongSan.Areas.Admin.Controllers
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (don == null) return NotFound();
 
-            if (!string.Equals(don.TrangThai, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(don.TrangThai, "Đã hủy", StringComparison.OrdinalIgnoreCase))
             {
-                TempData["toast"] = "Chỉ xóa đơn đã Hủy. Vui lòng chuyển trạng thái sang Cancelled trước.";
-                TempData["toastType"] = "warning";
+                TempData["ToastMessage"] = "Chỉ xóa đơn đã Hủy. Vui lòng chuyển trạng thái sang \"Đã hủy\" trước.";
+                TempData["ToastType"] = "warning";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -197,16 +196,15 @@ namespace ShopNongSan.Areas.Admin.Controllers
             {
                 _db.DonHangs.Remove(don);
                 await _db.SaveChangesAsync();
-                TempData["toast"] = "Đã xóa đơn hàng.";
-                TempData["toastType"] = "success";
-                return RedirectToAction(nameof(Index));
+                TempData["ToastMessage"] = "Đã xóa đơn hàng.";
+                TempData["ToastType"] = "success";
             }
             catch (Exception ex)
             {
-                TempData["toast"] = "Không thể xóa: " + ex.Message;
-                TempData["toastType"] = "danger";
-                return RedirectToAction(nameof(Index));
+                TempData["ToastMessage"] = "Không thể xóa: " + ex.Message;
+                TempData["ToastType"] = "danger";
             }
+            return RedirectToAction(nameof(Index));
         }
     }
 }

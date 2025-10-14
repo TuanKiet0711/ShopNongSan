@@ -1,50 +1,88 @@
 ﻿@model TaiKhoan
 @{
     ViewData["Title"] = "Thêm tài khoản";
-    var listVT = ViewBag.VaiTroList as List<string>;
+    var listVT = (ViewBag.VaiTroList as List<string>) ?? new List<string> { "Admin", "Staff", "Customer" };
 }
 
-<h2 class="mb-3">Thêm tài khoản</h2>
+<h2 class="fw-bold mb-4 text-success">
+    <i class="bi bi-person-plus-fill me-2"></i> Thêm tài khoản
+</h2>
 
-<form asp-action="Create" method="post" class="row g-3">
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+<div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(false, "", new { @class = "text-danger mb-3" })
 
-    <div class="col-md-4">
-        <label class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
-        <input asp-for="TenDangNhap" class="form-control" required />
-        <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Tên đăng nhập <span class="text-danger"></span></label>
+                <input asp-for="TenDangNhap" class="form-control form-control-lg shadow-sm" placeholder="Nhập tên đăng nhập..." required />
+                <span asp-validation-for="TenDangNhap" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Mật khẩu <span class="text-danger"></span></label>
+                <input asp-for="MatKhau" type="text" class="form-control form-control-lg shadow-sm" placeholder="Nhập mật khẩu..." required />
+                <span asp-validation-for="MatKhau" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Họ tên <span class="text-danger"></span></label>
+                <input asp-for="HoTen" class="form-control form-control-lg shadow-sm" placeholder="Nhập họ tên đầy đủ..." required />
+                <span asp-validation-for="HoTen" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Vai trò <span class="text-danger"></span></label>
+                <select asp-for="VaiTro" class="form-select form-select-lg shadow-sm" required>
+                    <option value="">-- Chọn vai trò --</option>
+                    @foreach (var vt in listVT)
+                    {
+                        <option value="@vt">@vt</option>
+                    }
+                </select>
+                <span asp-validation-for="VaiTro" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-gradient-green px-4 py-2 fw-semibold shadow-sm me-2">
+                    <i class="bi bi-check-circle"></i> Lưu
+                </button>
+                <a asp-action="Index" class="btn btn-secondary px-4 py-2 fw-semibold shadow-sm">
+                    <i class="bi bi-arrow-left-circle"></i> Huỷ
+                </a>
+            </div>
+        </form>
     </div>
-
-    <div class="col-md-4">
-        <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-        <input asp-for="MatKhau" type="text" class="form-control" required />
-        <span asp-validation-for="MatKhau" class="text-danger"></span>
-    </div>
-
-    <div class="col-md-4">
-        <label class="form-label">Họ tên <span class="text-danger">*</span></label>
-        <input asp-for="HoTen" class="form-control" required />
-        <span asp-validation-for="HoTen" class="text-danger"></span>
-    </div>
-
-    <div class="col-md-4">
-        <label class="form-label">Vai trò <span class="text-danger">*</span></label>
-        <select asp-for="VaiTro" class="form-select" required>
-            @foreach (var vt in listVT)
-            {
-                <option value="@vt">@vt</option>
-            }
-        </select>
-        <span asp-validation-for="VaiTro" class="text-danger"></span>
-    </div>
-
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">Lưu</button>
-        <a asp-action="Index" class="btn btn-secondary">Huỷ</a>
-    </div>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <style>
+        /* Gradient xanh cho nút Lưu */
+        .btn-gradient-green {
+            background: linear-gradient(45deg, #2e7d32, #43a047);
+            color: #fff !important;
+            border: none;
+            transition: all .25s ease;
+        }
+
+            .btn-gradient-green:hover {
+                background: linear-gradient(45deg, #1b5e20, #2e7d32);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(0,0,0,.15);
+            }
+
+        /* Card đẹp hơn */
+        .card {
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #43a047;
+            box-shadow: 0 0 0 0.25rem rgba(67, 160, 71, 0.25);
+        }
+    </style>
 }

@@ -7,6 +7,10 @@
     string q = ViewBag.Q as string ?? "";
 }
 
+<h2 class="fw-bold mb-4 text-success">
+    <i class="bi bi-bookmark-star"></i> Quản lý thương hiệu
+</h2>
+
 <div class="card shadow-sm mb-3">
     <div class="card-body">
         <form method="get" class="row g-3 align-items-end">
@@ -26,7 +30,8 @@
                     <button type="submit" class="btn btn-primary px-3 btn-nowrap">
                         <i class="bi bi-funnel"></i> Lọc
                     </button>
-                    <a asp-area="Admin" asp-controller="ThuongHieus" asp-action="Index" class="btn btn-danger px-3 btn-nowrap">
+                    <a asp-area="Admin" asp-controller="ThuongHieus" asp-action="Index"
+                       class="btn btn-danger px-3 btn-nowrap">
                         <i class="bi bi-x-circle"></i> Xóa bộ lọc
                     </a>
                 </div>
@@ -35,7 +40,8 @@
             <!-- Tổng số + Thêm mới -->
             <div class="col-12 d-flex justify-content-between align-items-center">
                 <span class="small text-muted">Tổng: @totalCount</span>
-                <a asp-area="Admin" asp-controller="ThuongHieus" asp-action="Create" class="btn btn-primary">
+                <a asp-area="Admin" asp-controller="ThuongHieus" asp-action="Create"
+                   class="btn btn-gradient-green fw-semibold shadow-sm px-4">
                     <i class="bi bi-plus-circle"></i> Thêm mới
                 </a>
             </div>
@@ -137,11 +143,27 @@
         color: #212529 !important;
     }
 
+    /* Nút Thêm mới gradient */
+    .btn-gradient-green {
+        background: linear-gradient(45deg, #2e7d32, #43a047);
+        color: #fff !important;
+        border: none;
+        transition: all .25s ease;
+    }
+
+        .btn-gradient-green:hover {
+            background: linear-gradient(45deg, #1b5e20, #2e7d32);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,.15);
+        }
+
+    /* Header bảng xanh lá đồng bộ */
     .table thead.table-success th {
         background-color: #198754 !important;
         color: #fff !important;
     }
 
+    /* Phân trang */
     .pagination .page-item.active .page-link {
         background-color: #0d6efd !important;
         border-color: #0d6efd !important;
@@ -156,5 +178,4 @@
             background-color: #0d6efd !important;
             color: #fff !important;
         }
-
 </style>

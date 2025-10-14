@@ -1,46 +1,89 @@
 ﻿@model IEnumerable<ShopNongSan.Models.DonHang>
 @{
     ViewData["Title"] = "Đơn hàng của tôi";
+
+    string BadgeClass(string s) => s switch
+    {
+        "Chờ xử lý" => "bg-warning text-dark",
+        "Đã xác nhận" => "bg-primary",
+        "Đang giao" => "bg-info text-dark",
+        "Hoàn tất" => "bg-success",
+        "Đã hủy" => "bg-danger",
+        _ => "bg-secondary"
+    };
 }
+
 <h2 class="mb-3">Đơn hàng của tôi</h2>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info">Bạn chưa có đơn nào.</div>
+    <div class="alert alert-info rounded-4 shadow-sm">
+        <i class="bi bi-info-circle me-1"></i> Bạn chưa có đơn nào.
+    </div>
 }
 else
 {
-    <table class="table table-striped align-middle">
-        <thead>
-            <tr>
-                <th>Mã đơn</th>
-                <th class="text-end">Tổng tiền</th>
-                <th>Trạng thái</th>
-                <th style="width:220px"></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var d in Model)
-            {
-                <tr>
-                    <td>@d.MaDonHang</td>
-                    <td class="text-end">@d.TongTien.ToString("N0") đ</td>
-                    <td>@d.TrangThai</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-sm btn-outline-primary me-2">Chi tiết</a>
-
-                        @if (string.Equals(d.TrangThai, "Pending", StringComparison.OrdinalIgnoreCase))
+    <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-success">
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center" style="width:260px">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model)
                         {
-                            <form asp-action="Cancel" method="post" class="d-inline"
-                                  onsubmit="return confirm('Hủy đơn @d.MaDonHang ?')">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@d.Id" />
-                                <button type="submit" class="btn btn-sm btn-danger">Hủy</button>
-                            </form>
+                            <tr>
+                                <td class="fw-semibold">@d.MaDonHang</td>
+                                <td class="text-end fw-semibold">@d.TongTien.ToString("N0") đ</td>
+                                <td><span class="badge @BadgeClass(d.TrangThai)">@d.TrangThai</span></td>
+                                <td class="text-center">
+                                    <div class="d-inline-flex gap-2">
+                                        <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Chi tiết
+                                        </a>
+
+                                        @if (string.Equals(d.TrangThai, "Chờ xử lý", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <form asp-action="Cancel" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Hủy đơn @d.MaDonHang ?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@d.Id" />
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-x-octagon"></i> Hủy
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
                         }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <style>
+        .rounded-4 {
+            border-radius: 1rem;
+        }
+
+        .table thead.table-success th {
+            background-color: #198754 !important;
+            color: #fff !important;
+        }
+
+        .btn-outline-primary {
+            border-width: 2px;
+        }
+    </style>
 }

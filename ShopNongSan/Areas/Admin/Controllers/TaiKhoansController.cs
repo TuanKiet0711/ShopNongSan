@@ -111,14 +111,23 @@ namespace ShopNongSan.Areas.Admin.Controllers
                 return View(model);
             }
 
-            model.Id = Guid.NewGuid();
-            model.NgayTao = DateTime.Now;
+            try
+            {
+                model.Id = Guid.NewGuid();
+                model.NgayTao = DateTime.Now;
 
-            _context.TaiKhoans.Add(model);
-            await _context.SaveChangesAsync();
+                _context.TaiKhoans.Add(model);
+                await _context.SaveChangesAsync();
 
-            SetToast("Tạo tài khoản thành công");
-            return RedirectToAction(nameof(Index));
+                SetToast("Tạo tài khoản thành công");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ViewBag.VaiTroList = RoleList();
+                SetToast("Lỗi khi tạo: " + ex.Message, "danger");
+                return View(model);
+            }
         }
 
         // ================= EDIT =================
@@ -132,7 +141,6 @@ namespace ShopNongSan.Areas.Admin.Controllers
             return View(tk);
         }
 
-        // POST Edit: chỉ nhận model (tránh lỗi route id)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(TaiKhoan model)
@@ -160,14 +168,23 @@ namespace ShopNongSan.Areas.Admin.Controllers
             var tk = await _context.TaiKhoans.FindAsync(model.Id);
             if (tk == null) return NotFound();
 
-            tk.TenDangNhap = model.TenDangNhap;
-            tk.MatKhau = model.MatKhau; // theo yêu cầu: hiển thị/chỉnh sửa plain text
-            tk.HoTen = model.HoTen;
-            tk.VaiTro = model.VaiTro;  // "Customer"/"Staff"/"Admin" đã chuẩn hoá
+            try
+            {
+                tk.TenDangNhap = model.TenDangNhap;
+                tk.MatKhau = model.MatKhau; // theo yêu cầu: plain text
+                tk.HoTen = model.HoTen;
+                tk.VaiTro = model.VaiTro;
 
-            await _context.SaveChangesAsync();
-            SetToast("Cập nhật tài khoản thành công");
-            return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync();
+                SetToast("Cập nhật tài khoản thành công");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ViewBag.VaiTroList = RoleList();
+                SetToast("Lỗi khi cập nhật: " + ex.Message, "danger");
+                return View(model);
+            }
         }
 
         // ================= DELETE =================
@@ -186,10 +203,16 @@ namespace ShopNongSan.Areas.Admin.Controllers
             var tk = await _context.TaiKhoans.FindAsync(id);
             if (tk == null) return NotFound();
 
-            _context.TaiKhoans.Remove(tk);
-            await _context.SaveChangesAsync();
-
-            SetToast("Đã xoá tài khoản");
+            try
+            {
+                _context.TaiKhoans.Remove(tk);
+                await _context.SaveChangesAsync();
+                SetToast("Đã xoá tài khoản");
+            }
+            catch (Exception ex)
+            {
+                SetToast("Không thể xoá: " + ex.Message, "danger");
+            }
             return RedirectToAction(nameof(Index));
         }
     }

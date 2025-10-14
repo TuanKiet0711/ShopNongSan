@@ -13,54 +13,57 @@
         : (p.StartsWith("/") ? Url.Content("~" + p) : Url.Content("~/images/" + p));
 }
 
+<h2 class="fw-bold mb-4 text-success">
+    <i class="bi bi-basket2"></i> Quản lý sản phẩm
+</h2>
+
 <div class="card shadow-sm mb-3">
     <div class="card-body">
         <form method="get" class="row g-3 align-items-end">
             <!-- Tìm kiếm -->
-            <div class="col-lg-5">
-                <label class="form-label mb-1">Tìm kiếm</label>
+            <div class="col-lg-5 col-md-6">
+                <label class="form-label mb-1 fw-semibold">Tìm kiếm</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" value="@q" class="form-control"
                            placeholder="Tên sản phẩm, danh mục, thương hiệu, mô tả..." />
                 </div>
             </div>
 
             <!-- Danh mục -->
-            <div class="col-lg-3">
-                <label class="form-label mb-1">Danh mục</label>
+            <div class="col-lg-3 col-md-3">
+                <label class="form-label mb-1 fw-semibold">Danh mục</label>
                 <select name="danhMucId" asp-items="ViewBag.DanhMucId" class="form-select select2">
                     <option value="">-- Tất cả --</option>
                 </select>
             </div>
 
             <!-- Thương hiệu -->
-            <div class="col-lg-3">
-                <label class="form-label mb-1">Thương hiệu</label>
+            <div class="col-lg-3 col-md-3">
+                <label class="form-label mb-1 fw-semibold">Thương hiệu</label>
                 <select name="thuongHieuId" asp-items="ViewBag.ThuongHieuId" class="form-select select2">
                     <option value="">-- Tất cả --</option>
                 </select>
             </div>
 
-            <!-- Lọc + Xóa bộ lọc -->
-            <div class="col-md-4 col-lg-3 col-xl-2">
-                <div class="d-flex gap-2">
-                    <input type="hidden" name="page" value="1" />
-                    <button type="submit" class="btn btn-primary px-3 btn-nowrap">
-                        <i class="bi bi-funnel"></i> Lọc
-                    </button>
-                    <a asp-area="Admin" asp-controller="SanPhams" asp-action="Index"
-                       class="btn btn-danger px-3 btn-nowrap">
-                        <i class="bi bi-x-circle"></i> Xóa bộ lọc
-                    </a>
-                </div>
+            <!-- Lọc + Xoá -->
+            <div class="col-lg-1 col-md-12 d-flex gap-2 align-items-end">
+                <input type="hidden" name="page" value="1" />
+                <button type="submit" class="btn btn-primary flex-fill" title="Lọc">
+                    <i class="bi bi-funnel"></i>
+                </button>
+                <a asp-area="Admin" asp-controller="SanPhams" asp-action="Index"
+                   class="btn btn-danger flex-fill" title="Xóa bộ lọc">
+                    <i class="bi bi-x-circle"></i>
+                </a>
             </div>
 
-            <!-- Tổng số + Thêm mới -->
-            <div class="col-12 d-flex justify-content-between align-items-center">
+            <!-- Tổng + Thêm mới -->
+            <div class="col-12 d-flex justify-content-between align-items-center mt-2">
                 <span class="small text-muted">Tổng: @totalCount</span>
-                <a asp-area="Admin" asp-controller="SanPhams" asp-action="Create" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Thêm mới
+                <a asp-area="Admin" asp-controller="SanPhams" asp-action="Create"
+                   class="btn btn-gradient-green fw-semibold shadow-sm px-4">
+                    <i class="bi bi-plus-circle"></i> Thêm mới sản phẩm
                 </a>
             </div>
         </form>
@@ -85,18 +88,16 @@
         <tbody>
             @foreach (var sp in Model)
             {
-                var stockCls = sp.SoLuongTon == 0 ? "bg-danger"
-                : sp.SoLuongTon <= 20 ? "bg-warning text-dark"
-                : "bg-success";
+                string stockCls = sp.SoLuongTon == 0 ? "bg-danger"
+                                 : sp.SoLuongTon <= 20 ? "bg-warning"
+                                 : "bg-success";
 
                 <tr>
-                    <!-- Tên -->
                     <td class="fw-semibold">
                         @sp.Ten
                         <div class="text-muted small">#@sp.Id</div>
                     </td>
 
-                    <!-- Mô tả -->
                     <td>
                         @if (!string.IsNullOrWhiteSpace(sp.MoTa))
                         {
@@ -104,24 +105,25 @@
                                 @(sp.MoTa.Length > 100 ? sp.MoTa.Substring(0, 100) + "…" : sp.MoTa)
                             </div>
                         }
-                        else
-                        {
-                            <span class="text-muted fst-italic">—</span>
-                        }
+                        else { <span class="text-muted fst-italic">—</span> }
                     </td>
 
                     <td class="text-muted">@sp.DanhMuc?.Ten</td>
                     <td class="text-muted">@sp.ThuongHieu?.Ten</td>
                     <td class="text-end fw-semibold">@sp.Gia.ToString("N0") đ</td>
-                    <td class="text-center"><span class="badge @stockCls">@sp.SoLuongTon</span></td>
 
-                    <!-- Ảnh -->
+                    <td class="text-center">
+                        <!-- Badge tồn: nền theo lớp, chữ trắng -->
+                        <span class="badge rounded-pill px-3 py-2 text-white @stockCls">
+                            @sp.SoLuongTon
+                        </span>
+                    </td>
+
                     <td class="text-center">
                         <img src="@ImgUrl(sp.HinhAnh)" alt="@sp.Ten"
                              class="rounded" style="width:60px;height:60px;object-fit:cover" />
                     </td>
 
-                    <!-- Thao tác -->
                     <td class="text-end">
                         <div class="btn-group">
                             <a asp-action="Edit" asp-route-id="@sp.Id" class="btn btn-sm btn-warning text-dark">
@@ -152,6 +154,7 @@
                        asp-route-danhMucId="@dm"
                        asp-route-thuongHieuId="@th">«</a>
                 </li>
+
                 @for (int i = Math.Max(1, page - 2); i <= Math.Min(totalPages, page + 2); i++)
                 {
                     <li class="page-item @(i == page ? "active" : "")">
@@ -163,6 +166,7 @@
                            asp-route-thuongHieuId="@th">@i</a>
                     </li>
                 }
+
                 <li class="page-item @(page >= totalPages ? "disabled" : "")">
                     <a class="page-link"
                        asp-action="Index"
@@ -191,14 +195,10 @@
 }
 
 @section Scripts {
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-
-    <!-- jQuery + Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <script>
         $(function () {
             $('.select2').select2({
@@ -213,49 +213,49 @@
 <style>
     .btn-nowrap { white-space: nowrap; }
 
-    /* Màu nút chuẩn */
-    .btn-primary {
-        background-color: #0d6efd !important;
-        border-color: #0d6efd !important;
-        color: #fff !important;
-    }
-    .btn-danger {
-        background-color: #dc3545 !important;
-        border-color: #dc3545 !important;
-        color: #fff !important;
-    }
-    .btn-warning {
-        background-color: #ffc107 !important;
-        border-color: #ffc107 !important;
-        color: #212529 !important;
-    }
-
-    /* Header bảng xanh lá */
-    .table thead.table-success th {
-        background-color: #198754 !important;
-        color: #fff !important;
-    }
-
-    /* Phân trang */
-    .pagination .page-item.active .page-link {
-        background-color: #0d6efd !important;
-        border-color: #0d6efd !important;
-        color: #fff !important;
-    }
-    .pagination .page-link { color: #0d6efd; }
-    .pagination .page-link:hover {
-        background-color: #0d6efd !important;
-        color: #fff !important;
-    }
-
-    /* Select2 */
+    /* Chiều cao đồng bộ */
+    .form-control,
+    .form-select,
     .select2-container .select2-selection--single {
-        height: 38px !important;
+        height: 44px !important;
+        border-radius: 10px !important;
     }
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 38px !important;
+    .select2-selection__rendered { line-height: 44px !important; }
+    .select2-selection__arrow { height: 44px !important; }
+
+    /* Nút Thêm mới đẹp */
+    .btn-gradient-green {
+        background: linear-gradient(45deg, #2e7d32, #43a047);
+        color: #fff !important;
+        border: none;
+        transition: all 0.3s ease;
     }
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 38px !important;
+    .btn-gradient-green:hover {
+        background: linear-gradient(45deg, #1b5e20, #2e7d32);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
+
+    /* Header bảng */
+    .table thead.table-success th {
+        background-color: #2e7d32 !important;
+        color: #fff !important;
+    }
+
+    /* Badge tồn chữ trắng */
+    .badge { color: #fff !important; font-weight: 600; }
+
+    /* Pagination */
+    .pagination .page-item.active .page-link {
+        background-color: #2e7d32 !important;
+        border-color: #2e7d32 !important;
+        color: #fff !important;
+    }
+    .pagination .page-link { color: #2e7d32; }
+    .pagination .page-link:hover {
+        background-color: #2e7d32 !important;
+        color: #fff !important;
+    }
+
+    .form-label { font-weight: 500; }
 </style>

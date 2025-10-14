@@ -88,15 +88,27 @@ namespace ShopNongSan.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 await LoadDropdowns(model.DanhMucId, model.ThuongHieuId);
+                SetToast("Vui lòng kiểm tra lại thông tin.", "warning");
                 return View(model);
             }
 
-            if (HinhAnhFile != null && HinhAnhFile.Length > 0)
-                model.HinhAnh = await SaveImageAsync(HinhAnhFile);
+            try
+            {
+                if (HinhAnhFile != null && HinhAnhFile.Length > 0)
+                    model.HinhAnh = await SaveImageAsync(HinhAnhFile);
 
-            _context.Add(model);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+                _context.Add(model);
+                await _context.SaveChangesAsync();
+
+                SetToast("Thêm sản phẩm thành công", "success");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await LoadDropdowns(model.DanhMucId, model.ThuongHieuId);
+                SetToast("Lỗi khi tạo: " + ex.Message, "danger");
+                return View(model);
+            }
         }
 
         // ====== EDIT ======
@@ -126,28 +138,47 @@ namespace ShopNongSan.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 await LoadDropdowns(model.DanhMucId, model.ThuongHieuId);
+                SetToast("Vui lòng kiểm tra lại thông tin.", "warning");
                 return View(model);
             }
 
-            sp.Ten = model.Ten;
-            sp.Gia = model.Gia;
-            sp.DanhMucId = model.DanhMucId;
-            sp.ThuongHieuId = model.ThuongHieuId;
-            sp.SoLuongTon = model.SoLuongTon;
-            sp.MoTa = model.MoTa;
+            try
+            {
+                sp.Ten = model.Ten;
+                sp.Gia = model.Gia;
+                sp.DanhMucId = model.DanhMucId;
+                sp.ThuongHieuId = model.ThuongHieuId;
+                sp.SoLuongTon = model.SoLuongTon;
+                sp.MoTa = model.MoTa;
 
-            if (HinhAnhFile != null)
-                sp.HinhAnh = await SaveImageAsync(HinhAnhFile);
+                if (HinhAnhFile != null && HinhAnhFile.Length > 0)
+                {
+                    // Xóa ảnh cũ nếu có
+                    if (!string.IsNullOrWhiteSpace(sp.HinhAnh))
+                        DeleteImageIfExists(sp.HinhAnh);
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+                    sp.HinhAnh = await SaveImageAsync(HinhAnhFile);
+                }
+
+                await _context.SaveChangesAsync();
+                SetToast("Cập nhật sản phẩm thành công", "success");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await LoadDropdowns(model.DanhMucId, model.ThuongHieuId);
+                SetToast("Lỗi khi cập nhật: " + ex.Message, "danger");
+                return View(model);
+            }
         }
 
         // ====== DELETE ======
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var sp = await _context.SanPhams.Include(s => s.DanhMuc).Include(s => s.ThuongHieu)
+            var sp = await _context.SanPhams
+                .Include(s => s.DanhMuc)
+                .Include(s => s.ThuongHieu)
                 .FirstOrDefaultAsync(s => s.Id == id);
             if (sp == null) return NotFound();
             return View(sp);
@@ -158,11 +189,26 @@ namespace ShopNongSan.Areas.Admin.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var sp = await _context.SanPhams.FindAsync(id);
-            if (sp != null)
+            if (sp == null)
             {
+                SetToast("Sản phẩm không tồn tại.", "warning");
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(sp.HinhAnh))
+                    DeleteImageIfExists(sp.HinhAnh);
+
                 _context.SanPhams.Remove(sp);
                 await _context.SaveChangesAsync();
+                SetToast("Đã xoá sản phẩm", "success");
             }
+            catch (Exception ex)
+            {
+                SetToast("Không thể xoá: " + ex.Message, "danger");
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -177,7 +223,7 @@ namespace ShopNongSan.Areas.Admin.Controllers
         {
             if (f == null) return;
             var allowed = new[] { ".jpg", ".png", ".jpeg", ".gif", ".webp" };
-            var ext = Path.GetExtension(f.FileName).ToLower();
+            var ext = Path.GetExtension(f.FileName).ToLowerInvariant();
             if (!allowed.Contains(ext))
                 ModelState.AddModelError("HinhAnh", "Chỉ cho phép ảnh .jpg, .png, .gif, .webp");
             if (f.Length > 5 * 1024 * 1024)
@@ -194,15 +240,19 @@ namespace ShopNongSan.Areas.Admin.Controllers
                 await file.CopyToAsync(s);
             return $"/images/{fn}";
         }
- 
 
-
-
-private void DeleteImageIfExists(string relativePath)
+        private void DeleteImageIfExists(string relativePath)
         {
-            var physical = Path.Combine(_env.WebRootPath, relativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-            if (System.IO.File.Exists(physical))
-                System.IO.File.Delete(physical);
+            try
+            {
+                var physical = Path.Combine(_env.WebRootPath, relativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(physical))
+                    System.IO.File.Delete(physical);
+            }
+            catch
+            {
+                // bỏ qua nếu không xóa được, tránh crash
+            }
         }
 
         // ====== Toast ======

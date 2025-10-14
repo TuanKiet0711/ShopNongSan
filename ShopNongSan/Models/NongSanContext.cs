@@ -17,10 +17,6 @@ public partial class NongSanContext : DbContext
 
     public virtual DbSet<DanhMuc> DanhMucs { get; set; }
 
-    public virtual DbSet<DoiTra> DoiTras { get; set; }
-
-    public virtual DbSet<DoiTraChiTiet> DoiTraChiTiets { get; set; }
-
     public virtual DbSet<DonHang> DonHangs { get; set; }
 
     public virtual DbSet<DonHangChiTiet> DonHangChiTiets { get; set; }
@@ -54,39 +50,6 @@ public partial class NongSanContext : DbContext
             entity.Property(e => e.Ten).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<DoiTra>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__DoiTra__3214EC0763F492C6");
-
-            entity.ToTable("DoiTra");
-
-            entity.Property(e => e.LyDo).HasMaxLength(200);
-            entity.Property(e => e.TrangThai)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-
-            entity.HasOne(d => d.DonHang).WithMany(p => p.DoiTras)
-                .HasForeignKey(d => d.DonHangId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_DoiTra_DonHang");
-        });
-
-        modelBuilder.Entity<DoiTraChiTiet>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__DoiTraCh__3214EC07C55DFF0E");
-
-            entity.ToTable("DoiTraChiTiet");
-
-            entity.HasOne(d => d.DoiTra).WithMany(p => p.DoiTraChiTiets)
-                .HasForeignKey(d => d.DoiTraId)
-                .HasConstraintName("FK_DRTCT_DoiTra");
-
-            entity.HasOne(d => d.DonHangChiTiet).WithMany(p => p.DoiTraChiTiets)
-                .HasForeignKey(d => d.DonHangChiTietId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_DRTCT_DHCT");
-        });
-
         modelBuilder.Entity<DonHang>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__DonHang__3214EC07D658CA63");
@@ -106,9 +69,7 @@ public partial class NongSanContext : DbContext
             entity.Property(e => e.PhuongThucThanhToan).HasMaxLength(20);
             entity.Property(e => e.SoDienThoai).HasMaxLength(20);
             entity.Property(e => e.TongTien).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.TrangThai)
-                .HasMaxLength(20)
-                .IsUnicode(false);
+            entity.Property(e => e.TrangThai).HasMaxLength(50);
 
             entity.HasOne(d => d.TaiKhoan).WithMany(p => p.DonHangs)
                 .HasForeignKey(d => d.TaiKhoanId)

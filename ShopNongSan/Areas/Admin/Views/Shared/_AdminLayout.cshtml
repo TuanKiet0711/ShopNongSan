@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/admin.css">
+
     <style>
         html, body {
             height: 100%;
@@ -19,170 +20,225 @@
         body {
             min-height: 100vh;
             background-color: #f9fff9;
+            font-family: "Segoe UI", sans-serif;
         }
 
-        /* Khung 2 cột */
+        /* --- Bố cục chính --- */
         .admin-shell {
             display: flex;
             min-height: 100vh;
         }
 
-        /* Sidebar */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: 260px;
             position: sticky;
             top: 0;
             height: 100vh;
             overflow: auto;
-            background: #a5d6a7; /* xanh lá nhạt */
-            color: #1b5e20;
+            background: #66bb6a; /* xanh lá tươi, chữ trắng nổi */
+            color: #fff;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
         }
 
             .sidebar .navbar-brand {
-                color: #1b5e20;
-                font-size: 1.2rem;
+                color: #ffffff;
+                font-size: 1.35rem;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: .5rem;
+                margin-bottom: 1rem;
             }
+
+                .sidebar .navbar-brand i {
+                    font-size: 1.5rem;
+                }
 
             .sidebar .nav-link {
-                color: #1b5e20;
+                color: #f1f8f1;
                 border-radius: .5rem;
-                margin-bottom: .25rem;
+                margin-bottom: .3rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: .65rem;
+                font-size: 1rem;
+                padding: .55rem .9rem;
+                transition: all .2s ease-in-out;
             }
 
+                .sidebar .nav-link i {
+                    font-size: 1.2rem;
+                    opacity: 0.95;
+                }
+
                 .sidebar .nav-link.active {
-                    background: #81c784; /* xanh lá pastel hơn */
-                    font-weight: 600;
+                    background: #2e7d32; /* xanh đậm cho active */
                     color: #fff;
+                    font-weight: 700;
+                    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2);
                 }
 
                 .sidebar .nav-link:hover {
-                    background: #66bb6a; /* xanh lá tươi */
+                    background: rgba(255,255,255,0.2);
                     color: #fff;
+                    transform: translateX(3px);
                 }
 
-            /* Nút về trang khách */
-            .sidebar .btn-outline-secondary {
-                color: #1b5e20;
-                border-color: #1b5e20;
+            .sidebar hr {
+                border-color: rgba(255,255,255,0.4);
             }
 
-                .sidebar .btn-outline-secondary:hover {
-                    background: #66bb6a;
-                    border-color: #66bb6a;
-                    color: #fff;
+            /* --- Nút về trang khách --- */
+            .sidebar .btn-outline-light {
+                color: #fff;
+                border-color: #fff;
+                font-weight: 600;
+                width: 100%;
+                transition: all 0.2s ease-in-out;
+            }
+
+                .sidebar .btn-outline-light:hover {
+                    background: #fff;
+                    color: #2e7d32;
                 }
 
-
-        /* Content */
-        /* Content nền trắng, chữ đen */
+        /* --- CONTENT --- */
         .content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            background-color: #ffffff !important; /* ép nền trắng */
-            color: #000000 !important; /* ép chữ đen */
+            background-color: #ffffff;
+            color: #000;
         }
 
-            /* Toàn bộ text trong content cũng đen */
-            .content * {
-                color: #000000 !important;
-                background-color: transparent !important;
-            }
-
-
             .content main {
-                flex: 1 1 auto;
-            }
-
-            .content footer {
-                margin-top: auto;
+                flex: 1;
+                padding: 2rem;
             }
 
         footer {
             background: #e8f5e9;
             color: #2e7d32;
+            text-align: center;
+            padding: .8rem;
+            font-size: .9rem;
         }
 
-
+        .toast-container {
+            z-index: 1080;
+        }
     </style>
-
 </head>
+
 <body>
-<div class="admin-shell">
-    <!-- Sidebar -->
-    <aside class="sidebar p-3">
-        <a class="navbar-brand fw-bold d-block mb-3 text-decoration-none"
-           asp-area="Admin" asp-controller="Home" asp-action="Index">
-            Admin Nông Sản Sạch
-        </a>
-        <ul class="nav nav-pills flex-column">
-            <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Home"?"active":"")"
-                   asp-area="Admin" asp-controller="Home" asp-action="Index">Bảng điều khiển</a>
-            </li>
-           
-           
-            <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="SanPhams"?"active":"")"
-                   asp-area="Admin" asp-controller="SanPhams" asp-action="Index">Sản phẩm</a>
-            </li>
+    <div class="admin-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar p-3">
+            <a class="navbar-brand text-decoration-none"
+               asp-area="Admin" asp-controller="Home" asp-action="Index">
+                <i class="bi bi-leaf"></i> <span>Admin Nông Sản Sạch</span>
+            </a>
+
+            <ul class="nav nav-pills flex-column">
                 <li class="nav-item">
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="DanhMucs"?"active":"")"
-                       asp-area="Admin" asp-controller="DanhMucs" asp-action="Index">Danh mục</a>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+                       asp-area="Admin" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-speedometer2"></i> Bảng điều khiển
+                    </a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="ThuongHieus"?"active":"")"
-                       asp-area="Admin" asp-controller="ThuongHieus" asp-action="Index">Thương hiệu</a>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "SanPhams" ? "active" : "")"
+                       asp-area="Admin" asp-controller="SanPhams" asp-action="Index">
+                        <i class="bi bi-basket2"></i> Sản phẩm
+                    </a>
                 </li>
-            <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="DonHangs"?"active":"")"
-                   asp-area="Admin" asp-controller="DonHangs" asp-action="Index">Đơn hàng</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="TaiKhoans"?"active":"")"
-                   asp-area="Admin" asp-controller="TaiKhoans" asp-action="Index">Tài khoản</a>
-            </li>
-        </ul>
-        <hr />
-        <a class="btn btn-sm btn-outline-secondary" asp-area="Customer" asp-controller="SanPhams" asp-action="Index">Về trang khách</a>
-    </aside>
 
-    <!-- Content -->
-    <div class="content">
-        <!-- Nếu không cần top bar, bỏ hẳn nav để tránh đẩy layout -->
-        <main class="container py-4">
-            @RenderBody()
-        </main>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "DanhMucs" ? "active" : "")"
+                       asp-area="Admin" asp-controller="DanhMucs" asp-action="Index">
+                        <i class="bi bi-tags"></i> Danh mục
+                    </a>
+                </li>
 
-       
-    </div>
-</div>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "ThuongHieus" ? "active" : "")"
+                       asp-area="Admin" asp-controller="ThuongHieus" asp-action="Index">
+                        <i class="bi bi-bookmark-star"></i> Thương hiệu
+                    </a>
+                </li>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-@RenderSection("Scripts", required: false)
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "DonHangs" ? "active" : "")"
+                       asp-area="Admin" asp-controller="DonHangs" asp-action="Index">
+                        <i class="bi bi-receipt"></i> Đơn hàng
+                    </a>
+                </li>
 
-@* Toast *@
-@{
-    var toastMsg = TempData["ToastMessage"] as string;
-    var toastType = (TempData["ToastType"] as string) ?? "success";
-}
-@if (!string.IsNullOrEmpty(toastMsg))
-{
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080;">
-        <div id="liveToast" class="toast align-items-center text-bg-@toastType border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-            <div class="d-flex">
-                <div class="toast-body">@toastMsg</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "TaiKhoans" ? "active" : "")"
+                       asp-area="Admin" asp-controller="TaiKhoans" asp-action="Index">
+                        <i class="bi bi-people"></i> Tài khoản
+                    </a>
+                </li>
+            </ul>
+
+            <hr />
+            <a class="btn btn-sm btn-outline-light mt-2"
+               asp-area="Customer" asp-controller="SanPhams" asp-action="Index">
+                <i class="bi bi-house-door"></i> Về trang khách
+            </a>
+        </aside>
+
+        <!-- Content -->
+        <div class="content">
+            <main>
+                @RenderBody()
+            </main>
+           
         </div>
     </div>
-    <script>
-        (function () {
-            var el = document.getElementById('liveToast');
-            if (el) new bootstrap.Toast(el).show();
-        })();
-    </script>
-}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+
+    @* Toast (tương thích khóa cũ & mới) *@
+    @{
+        // Ưu tiên khóa mới; nếu chưa đổi hết trong controller, fallback về khóa cũ
+        var toastMsgRaw = (TempData["ToastMessage"] as string) ?? (TempData["toast"] as string);
+        var toastTypeRaw = (TempData["ToastType"] as string) ?? (TempData["toastType"] as string) ?? "success";
+
+        // Chuẩn hóa kiểu: cho phép dùng "error" trong controller, tự map thành "danger"
+        var toastType = toastTypeRaw?.ToLowerInvariant();
+        toastType = toastType switch
+        {
+            "error" => "danger",
+            "warn" => "warning",
+            "success" or "info" or "warning" or "danger" or "primary" or "secondary" or "light" or "dark"
+            => toastType,
+            _ => "success"
+        };
+    }
+    @if (!string.IsNullOrWhiteSpace(toastMsgRaw))
+    {
+        <div class="toast-container position-fixed top-0 end-0 p-3">
+            <div id="liveToast" class="toast align-items-center text-bg-@toastType border-0"
+                 role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3200">
+                <div class="d-flex">
+                    <div class="toast-body">@toastMsgRaw</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <script>
+            (() => {
+                const el = document.getElementById('liveToast');
+                if (el) new bootstrap.Toast(el).show();
+            })();
+        </script>
+    }
 </body>
 </html>

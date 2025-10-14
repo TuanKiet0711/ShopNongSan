@@ -2,21 +2,82 @@
 @{
     ViewData["Title"] = "Sửa danh mục";
 }
-<h2 class="mb-3">Sửa danh mục</h2>
 
-<form asp-action="Edit" method="post" class="row g-3">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+<h2 class="fw-bold mb-4 text-success">
+    <i class="bi bi-pencil-square"></i> Sửa danh mục
+</h2>
 
-    <div class="col-md-6">
-        <label class="form-label">Tên danh mục</label>
-        <input asp-for="Ten" class="form-control" />
-        <span asp-validation-for="Ten" class="text-danger"></span>
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <form asp-action="Edit" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Tên danh mục <span class="text-danger">*</span></label>
+                <input asp-for="Ten" class="form-control form-control-lg shadow-sm"
+                       placeholder="Nhập tên danh mục..." required />
+                <span asp-validation-for="Ten" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12 d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-gradient-green px-4 fw-semibold">
+                    <i class="bi bi-save"></i> Cập nhật
+                </button>
+                <a asp-action="Index" class="btn btn-secondary px-4 fw-semibold">
+                    <i class="bi bi-arrow-left-circle"></i> Quay lại
+                </a>
+            </div>
+        </form>
     </div>
+</div>
 
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">Cập nhật</button>
-        <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
-    </div>
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+    /* Gradient nút xanh lá */
+    .btn-gradient-green {
+        background: linear-gradient(45deg, #2e7d32, #43a047);
+        color: #fff !important;
+        border: none;
+        transition: all .25s ease-in-out;
+        border-radius: .5rem;
+    }
+
+        .btn-gradient-green:hover {
+            background: linear-gradient(45deg, #1b5e20, #2e7d32);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .15);
+        }
+
+    /* Nút Quay lại */
+    .btn-secondary {
+        border-radius: .5rem;
+        font-weight: 600;
+    }
+
+    /* Input đẹp */
+    .form-control {
+        border-radius: .5rem;
+        border-color: #ced4da;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+        }
+
+    /* Label */
+    label.form-label {
+        color: #1b5e20;
+    }
+
+    /* Card */
+    .card {
+        border-radius: .75rem;
+    }
+</style>

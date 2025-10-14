@@ -29,8 +29,6 @@ public partial class DonHang
 
     public string? PhuongThucThanhToan { get; set; }
 
-    public virtual ICollection<DoiTra> DoiTras { get; set; } = new List<DoiTra>();
-
     public virtual ICollection<DonHangChiTiet> DonHangChiTiets { get; set; } = new List<DonHangChiTiet>();
 
     public virtual TaiKhoan TaiKhoan { get; set; } = null!;
