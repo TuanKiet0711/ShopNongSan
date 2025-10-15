@@ -395,9 +395,8 @@
                                     <div><strong>Danh mục:</strong> @(sp.DanhMuc?.Ten ?? "Đang cập nhật")</div>
                                     <div><strong>Thương hiệu:</strong> @(sp.ThuongHieu?.Ten ?? "Đang cập nhật")</div>
                                 </div>
-
                                 @{
-                                    bool isCustomer = User?.Identity?.IsAuthenticated == true && User.IsInRole("Customer");
+                                    bool isSignedIn = User?.Identity?.IsAuthenticated == true;
                                 }
                                 <div class="product-actions">
                                     <!-- Mua ngay: giữ nguyên submit thường -->
@@ -414,10 +413,8 @@
                                        class="btn btn-view w-100">
                                         <i class="bi bi-eye me-2"></i>Xem chi tiết
                                     </a>
-
-                                    @if (isCustomer)
+                                    @if (isSignedIn)
                                     {
-                                        <!-- ĐÃ đăng nhập: dùng AJAX, không reload -->
                                         <form asp-area="Customer" asp-controller="GioHang" asp-action="AddAjax" method="post"
                                               class="add-cart-form" data-ajax="true">
                                             @Html.AntiForgeryToken()
@@ -430,7 +427,6 @@
                                     }
                                     else
                                     {
-                                        <!-- CHƯA đăng nhập: post thường -> controller Add sẽ redirect Login -->
                                         <form asp-area="Customer" asp-controller="GioHang" asp-action="Add" method="post">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@sp.Id" />

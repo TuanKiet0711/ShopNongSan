@@ -129,7 +129,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
         // POST: /Customer/GioHang/AddAjax (AJAX — không redirect)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Admin")]
         public async Task<IActionResult> AddAjax(int id, int qty = 1)
         {
             if (qty < 1) qty = 1;

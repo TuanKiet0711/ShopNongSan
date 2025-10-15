@@ -25,18 +25,26 @@
 
                     <div class="col-12">
                         <label class="form-label">Số điện thoại</label>
-                        <input asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" />
+                        <input asp-for="SoDienThoai"
+                               class="form-control"
+                               placeholder="Nhập số điện thoại"
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               maxlength="11"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                               onpaste="return false"
+                               ondrop="return false" />
                         <span asp-validation-for="SoDienThoai" class="text-danger"></span>
                     </div>
 
                     <div class="col-12">
                         <label class="form-label">Địa chỉ giao hàng</label>
                         <textarea asp-for="DiaChi" class="form-control" rows="3"
-                                  placeholder="Nhập địa chỉ giao hàng""></textarea>
+                                  placeholder="Nhập địa chỉ giao hàng"></textarea>
                         <span asp-validation-for="DiaChi" class="text-danger"></span>
                     </div>
 
-                    <!-- Ngày giao hàng mong muốn -->
                     <div class="col-12">
                         <label class="form-label">Ngày giao hàng mong muốn</label>
                         <input asp-for="NgayGiao" type="date" class="form-control"
@@ -110,8 +118,8 @@
                                 <tr>
                                     <td>
                                         <img src="@(string.IsNullOrEmpty(i.HinhAnh)
-                                                                                             ? Url.Content("~/images/no-image.png")
-                                                                                             : Url.Content(i.HinhAnh))"
+                                                                                         ? Url.Content("~/images/no-image.png")
+                                                                                         : Url.Content(i.HinhAnh))"
                                          style="width:60px;height:60px;object-fit:cover;border-radius:8px" />
                                 </td>
                                 <td>@i.TenSanPham</td>
@@ -140,7 +148,9 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
     <script>
+        // Toggle thông tin ngân hàng
         function toggleBankInfo() {
             var v = document.querySelector('input[name="PhuongThucThanhToan"]:checked')?.value;
             document.getElementById('bankInfo').style.display = (v === 'BANK') ? 'block' : 'none';
@@ -149,7 +159,28 @@
             if (e.target && e.target.name === 'PhuongThucThanhToan') toggleBankInfo();
         });
         document.addEventListener('DOMContentLoaded', toggleBankInfo);
+
+        // ✅ Giới hạn chỉ cho nhập số cho ô điện thoại
+        document.addEventListener('DOMContentLoaded', function () {
+            const phoneInput = document.querySelector('input[name="SoDienThoai"]');
+            if (!phoneInput) return;
+
+            // Chỉ giữ lại số khi gõ
+            phoneInput.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+
+            // Chặn ký tự không phải số khi nhấn phím
+            phoneInput.addEventListener('keypress', function (e) {
+                if (e.key < '0' || e.key > '9') e.preventDefault();
+            });
+
+            // Chặn dán và kéo thả
+            phoneInput.addEventListener('paste', e => e.preventDefault());
+            phoneInput.addEventListener('drop', e => e.preventDefault());
+        });
     </script>
+
     <style>
         .rounded-4 {
             border-radius: 1rem;
