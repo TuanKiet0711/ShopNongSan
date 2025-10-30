@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Models;
+using ShopNongSan.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,9 +24,14 @@ builder.Services
 
 // DB
 builder.Services.AddDbContext<NongSanContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Policies
+// VNPAY settings + service
+builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPay"));
+builder.Services.AddSingleton<IVnPayService, VnPayService>();
+builder.Services.AddHttpContextAccessor();
+
+// Policies (tuỳ dùng)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
@@ -49,25 +55,22 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 1) Route ri�ng cho Area Admin
+// Route area Admin
 app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
     pattern: "Admin/{controller=Home}/{action=Index}/{id?}"
 ).RequireAuthorization("AdminOrStaff");
 
-// 2) Route cho c�c Area kh�c
+// Route cho các Area khác (Customer…)
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// 3) Route m?c ??nh (?u ti�n Customer)
-app.MapControllerRoute(
-    name: "customer_default",
-    pattern: "{controller=SanPhams}/{action=Index}/{id?}",
-    defaults: new { area = "Customer" });
-
-// 4) "/" -> Trang ch? Customer/Home/Index
+// "/" -> Trang chủ Customer
 app.MapGet("/", () => Results.Redirect("/Customer/Home"));
+
+// Cho các attribute route tuyệt đối bên dưới
+app.MapControllers();
 
 app.Run();

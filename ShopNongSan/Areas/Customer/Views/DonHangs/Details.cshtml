@@ -4,36 +4,33 @@
 
     string BadgeClass(string s) => s switch
     {
-        "Chờ xử lý"   => "bg-warning text-dark",
+        "Chờ xử lý" => "bg-warning text-dark",
         "Đã xác nhận" => "bg-primary",
-        "Đang giao"   => "bg-info text-dark",
-        "Hoàn tất"    => "bg-success",
-        "Đã hủy"      => "bg-danger",
-        _             => "bg-secondary"
+        "Đang giao" => "bg-info text-dark",
+        "Hoàn tất" => "bg-success",
+        "Đã hủy" => "bg-danger",
+        _ => "bg-secondary"
     };
 
-    // Thứ tự trạng thái để vẽ step
     var steps = new[] { "Chờ xử lý", "Đã xác nhận", "Đang giao", "Hoàn tất" };
     int CurrentStepIndex(string s) => s switch
     {
-        "Chờ xử lý"   => 0,
+        "Chờ xử lý" => 0,
         "Đã xác nhận" => 1,
-        "Đang giao"   => 2,
-        "Hoàn tất"    => 3,
-        "Đã hủy"      => -1, // xử lý riêng
-        _             => 0
+        "Đang giao" => 2,
+        "Hoàn tất" => 3,
+        "Đã hủy" => -1,
+        _ => 0
     };
     var stepIndex = CurrentStepIndex(Model.TrangThai);
 
     string PtttText(string? v) =>
-        v == "BANK" ? "Chuyển khoản ngân hàng"
+        v == "VNPAY" ? "VNPAY (thanh toán trực tuyến)"
         : v == "COD" ? "Thanh toán khi nhận (COD)"
         : "-";
 }
-
-<!-- HERO SUMMARY -->
-<div class="card border-0 shadow-sm rounded-4 mb-3"
-     style="background:linear-gradient(135deg,#d8f3dc,#b7e4c7);">
+<!-- HERO -->
+<div class="card border-0 shadow-sm rounded-4 mb-3" style="background:linear-gradient(135deg,#d8f3dc,#b7e4c7);">
     <div class="card-body d-flex flex-wrap align-items-center gap-3">
         <div class="flex-grow-1">
             <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -41,23 +38,22 @@
                 <span class="badge @BadgeClass(Model.TrangThai)">@Model.TrangThai</span>
             </div>
             <div class="text-muted mt-1">
-                Đặt lúc <b>@(Model.NgayDat?.ToString("dd/MM/yyyy HH:mm") ?? "-")</b>
-                · Giao dự kiến <b>@(Model.NgayGiao?.ToString("dd/MM/yyyy") ?? "-")</b>
+                Đặt lúc <b>@(Model.NgayDat?.ToString("dd/MM/yyyy HH:mm") ?? "-")</b> ·
+                Giao dự kiến <b>@(Model.NgayGiao?.ToString("dd/MM/yyyy") ?? "-")</b>
             </div>
         </div>
         <div class="text-end">
             <div class="fw-semibold" style="font-size:1.15rem">Tổng tiền</div>
             <div class="display-6" style="font-size:1.8rem">@Model.TongTien.ToString("N0") đ</div>
             <div class="mt-2">
-                <a asp-action="Index" class="btn btn-outline-dark btn-sm">
-                    <i class="bi bi-card-list"></i> Danh sách đơn
-                </a>
+                <a asp-area="Customer" asp-controller="DonHangs" asp-action="Index"
+                   class="btn btn-outline-dark btn-sm"><i class="bi bi-card-list"></i> Danh sách đơn</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- STEP TRACKER -->
+<!-- STEPS -->
 <div class="card shadow-sm rounded-4 mb-4">
     <div class="card-body">
         @if (string.Equals(Model.TrangThai, "Đã hủy", StringComparison.OrdinalIgnoreCase))
@@ -78,14 +74,7 @@
                     var done = stepIndex >= i;
                     <div class="step text-center flex-fill">
                         <div class="step-dot mx-auto @(done ? "done" : "")">
-                            @if (done)
-                            {
-                                <i class="bi bi-check2"></i>
-                            }
-                            else
-                            {
-                                <span>@(i + 1)</span>
-                            }
+                            @if (done) { <i class="bi bi-check2"></i> } else { <span>@(i + 1)</span> }
                         </div>
                         <div class="small mt-2 @(done ? "text-dark fw-semibold" : "text-muted")">@steps[i]</div>
                     </div>
@@ -94,13 +83,11 @@
                 <div class="step-line-active position-absolute top-50 start-0 translate-middle-y"
                      style="width:@((Math.Max(stepIndex, 0) * 100.0 / (steps.Length - 1)))%"></div>
             </div>
-
         }
     </div>
 </div>
 
 <div class="row g-3">
-    <!-- ĐỊA CHỈ & THANH TOÁN -->
     <div class="col-lg-5">
         <div class="card shadow-sm rounded-4 h-100">
             <div class="card-body">
@@ -108,23 +95,20 @@
                 <dl class="row mb-0">
                     <dt class="col-5">Họ tên</dt>
                     <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.HoTen) ? Model.HoTen : "-")</dd>
-
                     <dt class="col-5">Số điện thoại</dt>
                     <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.SoDienThoai) ? Model.SoDienThoai : "-")</dd>
-
                     <dt class="col-5">Địa chỉ</dt>
                     <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.DiaChi) ? Model.DiaChi : "-")</dd>
-
                     <dt class="col-5">Ghi chú</dt>
                     <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.GhiChu) ? Model.GhiChu : "-")</dd>
-
                     <dt class="col-5">Thanh toán</dt>
                     <dd class="col-7">@PtttText(Model.PhuongThucThanhToan)</dd>
                 </dl>
 
                 @if (string.Equals(Model.TrangThai, "Chờ xử lý", StringComparison.OrdinalIgnoreCase))
                 {
-                    <form asp-action="Cancel" method="post" class="mt-3"
+                    <form asp-area="Customer" asp-controller="DonHangs" asp-action="Cancel"
+                          method="post" class="mt-3"
                           onsubmit="return confirm('Bạn chắc muốn hủy đơn này?')">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@Model.Id" />
@@ -132,12 +116,23 @@
                             <i class="bi bi-x-octagon"></i> Hủy đơn
                         </button>
                     </form>
+
+                    @* Thanh toán lại VNPAY *@
+                    @if (string.Equals(Model.PhuongThucThanhToan, "VNPAY", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form asp-area="Customer" asp-controller="DonHangs" asp-action="Pay" method="post" class="mt-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-credit-card"></i> Thanh toán lại qua VNPAY
+                            </button>
+                        </form>
+                    }
                 }
             </div>
         </div>
     </div>
 
-    <!-- SẢN PHẨM -->
     <div class="col-lg-7">
         <div class="card shadow-sm rounded-4">
             <div class="card-body">
@@ -153,15 +148,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @foreach (var ct in Model.DonHangChiTiets)
-                        {
-                            <tr>
-                                <td>@ct.SanPham?.Ten</td>
-                                <td class="text-end">@ct.DonGia.ToString("N0") đ</td>
-                                <td class="text-center">@ct.SoLuong</td>
-                                <td class="text-end">@((ct.DonGia * ct.SoLuong).ToString("N0")) đ</td>
-                            </tr>
-                        }
+                            @foreach (var ct in Model.DonHangChiTiets)
+                            {
+                                <tr>
+                                    <td>@ct.SanPham?.Ten</td>
+                                    <td class="text-end">@ct.DonGia.ToString("N0") đ</td>
+                                    <td class="text-center">@ct.SoLuong</td>
+                                    <td class="text-end">@((ct.DonGia * ct.SoLuong).ToString("N0")) đ</td>
+                                </tr>
+                            }
                         </tbody>
                         <tfoot>
                             <tr>
@@ -173,41 +168,32 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-2">
-                    <a asp-action="Index" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Quay lại
-                    </a>
-                    <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-success">
-                        <i class="bi bi-bag-plus"></i> Mua thêm
-                    </a>
+                    <a asp-area="Customer" asp-controller="DonHangs" asp-action="Index"
+                       class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+                    <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index"
+                       class="btn btn-success"><i class="bi bi-bag-plus"></i> Mua thêm</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts{
+@section Scripts {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <style>
         .rounded-4 { border-radius: 1rem; }
-        .table thead.table-success th { background:#198754 !important; color:#fff !important; }
-
+        .table thead.table-success th { background: #198754 !important; color: #fff !important; }
         .order-steps { padding: 12px 6px; }
         .order-steps .step { position: relative; z-index: 2; }
-        .order-steps .step-line {
-            height:4px; background:#e9ecef; border-radius:2px;
-        }
-        .order-steps .step-line-active {
-            height:4px; background:#198754; border-radius:2px;
-            transition: width .3s ease;
-        }
+        .order-steps .step-line,
+        .order-steps .step-line-active { height: 4px; border-radius: 2px; }
+        .order-steps .step-line { background: #e9ecef; }
+        .order-steps .step-line-active { background: #198754; transition: width .3s; }
         .step-dot {
-            width:32px; height:32px; border-radius:50%;
-            display:flex; align-items:center; justify-content:center;
-            background:#fff; border:2px solid #ced4da;
-            font-weight:600;
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: #fff; border: 2px solid #ced4da; font-weight: 600;
         }
-        .step-dot.done {
-            background:#198754; border-color:#198754; color:#fff;
-        }
+        .step-dot.done { background: #198754; border-color: #198754; color: #fff; }
     </style>
 }

@@ -2,18 +2,23 @@
 @{
     ViewData["Title"] = "Chi tiết đơn " + Model.MaDonHang;
 
-    string BadgeClass(string s)
+    string BadgeClass(string s) => s switch
     {
-        return s switch
-        {
-            "Chờ xử lý" => "status-badge bg-warning text-white",
-            "Đã xác nhận" => "status-badge bg-info text-white",
-            "Đang giao" => "status-badge bg-primary text-white",
-            "Hoàn tất" => "status-badge bg-success text-white",
-            "Đã hủy" => "status-badge bg-danger text-white",
-            _ => "status-badge bg-secondary text-white"
-        };
-    }
+        "Chờ xử lý" => "status-badge bg-warning text-white",
+        "Đã xác nhận" => "status-badge bg-info text-white",
+        "Đang giao" => "status-badge bg-primary text-white",
+        "Hoàn tất" => "status-badge bg-success text-white",
+        "Đã hủy" => "status-badge bg-danger text-white",
+        _ => "status-badge bg-secondary text-white"
+    };
+
+    string PaymentText(string? v) => v switch
+    {
+        "VNPAY" => "VNPAY (Thanh toán trực tuyến)",
+        "BANK" => "Chuyển khoản ngân hàng",
+        "COD" => "Thanh toán khi nhận (COD)",
+        _ => "-"
+    };
 }
 
 <div class="d-flex align-items-center mb-3 gap-2">
@@ -47,14 +52,11 @@
                     <dt class="col-5">Ghi chú</dt>
                     <dd class="col-7">@(!string.IsNullOrWhiteSpace(Model.GhiChu) ? Model.GhiChu : "-")</dd>
 
-                    <dt class="col-5">Phương thức TT</dt>
+                    <dt class="col-5">Phương thức thanh toán</dt>
                     <dd class="col-7">
-                        @{
-                            var pttt = Model.PhuongThucThanhToan ?? Model.TaiKhoan?.ThongTinNguoiDung?.PhuongThucThanhToan;
-                            string ptttText = pttt == "BANK" ? "Chuyển khoản" :
-                            pttt == "COD" ? "Thanh toán khi nhận (COD)" : "-";
-                        }
-                        @ptttText
+                        <span class="badge bg-dark-subtle text-dark fw-semibold px-3 py-2">
+                            @PaymentText(Model.PhuongThucThanhToan)
+                        </span>
                     </dd>
 
                     <dt class="col-5">Trạng thái</dt>
@@ -71,6 +73,19 @@
                     <dt class="col-5">Ngày giao dự kiến</dt>
                     <dd class="col-7">@Model.NgayGiao?.ToString("dd/MM/yyyy")</dd>
                 </dl>
+
+                <!-- HỦY ĐƠN -->
+                @if (string.Equals(Model.TrangThai, "Chờ xử lý", StringComparison.OrdinalIgnoreCase))
+                {
+                    <form asp-action="Cancel" method="post" class="mt-3"
+                          onsubmit="return confirm('Bạn chắc muốn hủy đơn này?')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-x-octagon"></i> Hủy đơn
+                        </button>
+                    </form>
+                }
             </div>
         </div>
     </div>
@@ -80,7 +95,7 @@
         <div class="card shadow-sm rounded-4">
             <div class="card-body">
                 <h5 class="card-title fw-semibold text-success">
-                    <i class="bi bi-bag-check me-1"></i> Sản phẩm
+                    <i class="bi bi-bag-check me-1"></i> Sản phẩm trong đơn
                 </h5>
                 <div class="table-responsive">
                     <table class="table table-bordered align-middle text-center mb-0">
@@ -96,7 +111,7 @@
                             @foreach (var ct in Model.DonHangChiTiets)
                             {
                                 <tr>
-                                    <td>@ct.SanPham?.Ten (@ct.SanPhamId)</td>
+                                    <td>@ct.SanPham?.Ten</td>
                                     <td>@ct.DonGia.ToString("N0") đ</td>
                                     <td>@ct.SoLuong</td>
                                     <td>@((ct.DonGia * ct.SoLuong).ToString("N0")) đ</td>
@@ -116,13 +131,10 @@
     </div>
 </div>
 
-<!-- ACTION BAR DƯỚI CÙNG -->
+<!-- NÚT QUAY LẠI -->
 <div class="mt-3 d-flex justify-content-end gap-2">
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-gradient-green text-white">
-        <i class="bi bi-pencil-square me-1"></i> Sửa
-    </a>
     <a asp-action="Index" class="btn btn-secondary text-white">
-        <i class="bi bi-arrow-left me-1"></i> Quay lại
+        <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
     </a>
 </div>
 
@@ -142,51 +154,29 @@
             color: #fff !important;
         }
 
-        /* Đồng bộ màu với Index + chữ trắng */
         .bg-warning.text-white {
             background-color: #ffc107 !important;
-            color: #fff !important;
         }
 
         .bg-primary.text-white {
             background-color: #0d6efd !important;
-            color: #fff !important;
         }
 
         .bg-info.text-white {
             background-color: #0dcaf0 !important;
-            color: #fff !important;
         }
 
         .bg-success.text-white {
             background-color: #198754 !important;
-            color: #fff !important;
         }
 
         .bg-danger.text-white {
             background-color: #dc3545 !important;
-            color: #fff !important;
         }
 
         .rounded-4 {
             border-radius: 1rem;
         }
-
-        /* Nút đẹp + chữ trắng */
-        .btn-gradient-green {
-            background: linear-gradient(45deg,#2e7d32,#43a047);
-            border: none;
-            color: #fff !important;
-            font-weight: 600;
-            padding: .55rem 1rem;
-            border-radius: .5rem;
-            transition: .2s ease-in-out;
-        }
-
-            .btn-gradient-green:hover {
-                filter: brightness(.95);
-                transform: translateY(-1px);
-            }
 
         .btn-secondary.text-white {
             color: #fff !important;

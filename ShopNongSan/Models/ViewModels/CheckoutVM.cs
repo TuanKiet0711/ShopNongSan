@@ -28,11 +28,11 @@ namespace ShopNongSan.Models.ViewModels
 
         [DataType(DataType.Date)]
         [Display(Name = "Ngày giao hàng mong muốn")]
-        public DateTime? NgayGiao { get; set; }   // ✅ khách chọn ngày
+        public DateTime? NgayGiao { get; set; }
 
         [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán")]
-        [RegularExpression("COD|BANK", ErrorMessage = "Phương thức không hợp lệ")]
-        public string PhuongThucThanhToan { get; set; } = "COD";
+        [RegularExpression("COD|VNPAY", ErrorMessage = "Phương thức không hợp lệ")]
+        public string PhuongThucThanhToan { get; set; } = "COD";   // ✅ "COD" | "VNPAY"
 
         // ==== MUA NGAY ====
         public bool IsBuyNow { get; set; }

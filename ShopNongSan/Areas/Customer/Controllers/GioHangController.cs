@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace ShopNongSan.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    [Authorize(Roles = "Customer,Admin")] // Chỉ khách hàng mới thao tác giỏ
+    [Authorize(Roles = "Customer,Admin")] // Mặc định cần login
     public class GioHangController : Controller
     {
         private readonly NongSanContext _db;
@@ -119,28 +119,30 @@ namespace ShopNongSan.Areas.Customer.Controllers
 
             await _db.SaveChangesAsync();
 
-            // 🔔 Thông báo (luồng redirect)
             TempData["toast"] = $"Đã thêm \"{sp.Ten}\" vào giỏ hàng.";
             TempData["toastType"] = "success";
 
             return Redirect(returnUrl ?? Url.Action("Index", "SanPhams", new { area = "Customer" })!);
         }
 
-        // POST: /Customer/GioHang/AddAjax (AJAX — không redirect)
+        // POST: /Customer/GioHang/AddAjax (AJAX — chưa login → 401)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer,Admin")]
+        [AllowAnonymous] // <— Cho phép vào action để TỰ trả 401 thay vì bị redirect 302
         public async Task<IActionResult> AddAjax(int id, int qty = 1)
         {
             if (qty < 1) qty = 1;
 
-            var uid = CurrentUserId;
-            if (uid == null) return Unauthorized(new { ok = false, message = "Bạn chưa đăng nhập." });
+            // Chưa đăng nhập: trả 401 để JS bắt và redirect Login
+            if (!User.Identity?.IsAuthenticated ?? true)
+                return Unauthorized(new { ok = false, message = "Bạn chưa đăng nhập." });
+
+            var uid = CurrentUserId!.Value;
 
             var sp = await _db.SanPhams.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (sp == null) return NotFound(new { ok = false, message = "Sản phẩm không tồn tại." });
 
-            var cart = await GetOrCreateCartAsync(uid.Value);
+            var cart = await GetOrCreateCartAsync(uid);
 
             var line = await _db.GioHangChiTiets
                 .FirstOrDefaultAsync(x => x.GioHangId == cart.Id && x.SanPhamId == sp.Id);
@@ -162,7 +164,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
 
             await _db.SaveChangesAsync();
 
-            // tổng số lượng trong giỏ
+            // Tổng số lượng trong giỏ
             var cartCount = await _db.GioHangChiTiets
                 .Where(x => x.GioHangId == cart.Id)
                 .SumAsync(x => (int?)x.SoLuong) ?? 0;
@@ -175,7 +177,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
             });
         }
 
-        // POST: /Customer/GioHang/Increase (TĂNG 1)
+        // POST: /Customer/GioHang/Increase
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Increase(long id)
@@ -195,7 +197,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Customer/GioHang/Decrease (GIẢM 1; nếu về 0 thì xóa)
+        // POST: /Customer/GioHang/Decrease
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Decrease(long id)

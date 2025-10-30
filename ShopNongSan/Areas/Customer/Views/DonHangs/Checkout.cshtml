@@ -53,11 +53,6 @@
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label">Ghi chú (tuỳ chọn)</label>
-                        <input asp-for="GhiChu" class="form-control" placeholder="Nhập ghi chú (nếu có)" />
-                    </div>
-
-                    <div class="col-12">
                         <label class="form-label d-block">Phương thức thanh toán</label>
 
                         <div class="form-check">
@@ -66,19 +61,14 @@
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="BANK" id="pmBANK" />
-                            <label class="form-check-label" for="pmBANK">Chuyển khoản ngân hàng</label>
+                            <input class="form-check-input" type="radio" asp-for="PhuongThucThanhToan" value="VNPAY" id="pmVNPAY" />
+                            <label class="form-check-label" for="pmVNPAY">VNPAY (thanh toán trực tuyến)</label>
                         </div>
 
                         <span asp-validation-for="PhuongThucThanhToan" class="text-danger"></span>
 
-                        <div id="bankInfo" class="alert alert-secondary mt-2" style="display:none">
-                            <div class="small mb-1"><b>Hướng dẫn chuyển khoản</b></div>
-                            <div class="small">
-                                Ngân hàng: Vietcombank <br />
-                                Số TK: 0123456789 – Chủ TK: <b>Lê Diệu Tinh</b><br />
-                                Nội dung: Thanh toán đơn hàng + Họ tên/SĐT
-                            </div>
+                        <div id="vnpayInfo" class="alert alert-secondary mt-2" style="display:none">
+                            <div class="small"><b>VNPAY</b> sẽ chuyển bạn đến cổng thanh toán an toàn để hoàn tất.</div>
                         </div>
                     </div>
 
@@ -117,17 +107,15 @@
                             {
                                 <tr>
                                     <td>
-                                        <img src="@(string.IsNullOrEmpty(i.HinhAnh)
-                                                                                         ? Url.Content("~/images/no-image.png")
-                                                                                         : Url.Content(i.HinhAnh))"
-                                         style="width:60px;height:60px;object-fit:cover;border-radius:8px" />
-                                </td>
-                                <td>@i.TenSanPham</td>
-                                <td class="text-end">@i.DonGia.ToString("N0") đ</td>
-                                <td class="text-center">@i.SoLuong</td>
-                                <td class="text-end">@i.ThanhTien.ToString("N0") đ</td>
-                            </tr>
-                                                        }
+                                        <img src="@(string.IsNullOrEmpty(i.HinhAnh) ? Url.Content("~/images/no-image.png") : Url.Content(i.HinhAnh))"
+                                             style="width:60px;height:60px;object-fit:cover;border-radius:8px" />
+                                    </td>
+                                    <td>@i.TenSanPham</td>
+                                    <td class="text-end">@i.DonGia.ToString("N0") đ</td>
+                                    <td class="text-center">@i.SoLuong</td>
+                                    <td class="text-end">@i.ThanhTien.ToString("N0") đ</td>
+                                </tr>
+                            }
                         </tbody>
                         <tfoot>
                             <tr>
@@ -150,32 +138,25 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
     <script>
-        // Toggle thông tin ngân hàng
-        function toggleBankInfo() {
+        function toggleVnPayInfo() {
             var v = document.querySelector('input[name="PhuongThucThanhToan"]:checked')?.value;
-            document.getElementById('bankInfo').style.display = (v === 'BANK') ? 'block' : 'none';
+            document.getElementById('vnpayInfo').style.display = (v === 'VNPAY') ? 'block' : 'none';
         }
         document.addEventListener('change', function (e) {
-            if (e.target && e.target.name === 'PhuongThucThanhToan') toggleBankInfo();
+            if (e.target && e.target.name === 'PhuongThucThanhToan') toggleVnPayInfo();
         });
-        document.addEventListener('DOMContentLoaded', toggleBankInfo);
+        document.addEventListener('DOMContentLoaded', toggleVnPayInfo);
 
-        // ✅ Giới hạn chỉ cho nhập số cho ô điện thoại
+        // Giới hạn chỉ số cho ô điện thoại
         document.addEventListener('DOMContentLoaded', function () {
             const phoneInput = document.querySelector('input[name="SoDienThoai"]');
             if (!phoneInput) return;
-
-            // Chỉ giữ lại số khi gõ
             phoneInput.addEventListener('input', function () {
                 this.value = this.value.replace(/[^0-9]/g, '');
             });
-
-            // Chặn ký tự không phải số khi nhấn phím
             phoneInput.addEventListener('keypress', function (e) {
                 if (e.key < '0' || e.key > '9') e.preventDefault();
             });
-
-            // Chặn dán và kéo thả
             phoneInput.addEventListener('paste', e => e.preventDefault());
             phoneInput.addEventListener('drop', e => e.preventDefault());
         });
