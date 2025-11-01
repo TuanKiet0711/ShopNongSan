@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Models;
 using ShopNongSan.Services;
@@ -8,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // MVC
 builder.Services.AddControllersWithViews();
 
-// Cookie Authentication
+// Cookie Authentication (HTTPS + top-level redirect compatible)
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -18,8 +19,11 @@ builder.Services
         options.AccessDeniedPath = "/Customer/TaiKhoan/KhongCoQuyen";
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
+
         options.Cookie.Name = "ShopNongSan.Auth";
+        options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // bắt buộc HTTPS
     });
 
 // DB
@@ -31,7 +35,7 @@ builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPa
 builder.Services.AddSingleton<IVnPayService, VnPayService>();
 builder.Services.AddHttpContextAccessor();
 
-// Policies (tuỳ dùng)
+// Authorization policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
@@ -39,7 +43,18 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("CustomerOnly", p => p.RequireRole("Customer", "Admin"));
 });
 
+// Forwarded headers (cho ngrok / proxy)
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+
 var app = builder.Build();
+
+// ====== THỨ TỰ QUAN TRỌNG ======
+app.UseForwardedHeaders(); // ✅ PHẢI ĐỂ TRƯỚC MỌI THỨ KHÁC LIÊN QUAN HTTPS
 
 if (!app.Environment.IsDevelopment())
 {
@@ -70,7 +85,7 @@ app.MapControllerRoute(
 // "/" -> Trang chủ Customer
 app.MapGet("/", () => Results.Redirect("/Customer/Home"));
 
-// Cho các attribute route tuyệt đối bên dưới
+// Cho các attribute route tuyệt đối (VnPayReturn, IPN, v.v.)
 app.MapControllers();
 
 app.Run();
