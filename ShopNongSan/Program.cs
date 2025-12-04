@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Models;
 using ShopNongSan.Services;
+using Stripe; // 👈 thêm dòng này
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,11 @@ builder.Services.AddDbContext<NongSanContext>(opt =>
 builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPay"));
 builder.Services.AddSingleton<IVnPayService, VnPayService>();
 builder.Services.AddHttpContextAccessor();
+
+// ⭐ STRIPE settings + service
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+builder.Services.AddScoped<IStripeService, StripeService>();
 
 // Authorization policies
 builder.Services.AddAuthorization(options =>
@@ -81,7 +87,9 @@ app.MapAreaControllerRoute(
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 // "/" -> Trang chủ Customer
 app.MapGet("/", () => Results.Redirect("/Customer/Home"));
 

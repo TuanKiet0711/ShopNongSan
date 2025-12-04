@@ -5,6 +5,7 @@ using ShopNongSan.Models;
 using ShopNongSan.Models.ViewModels;
 using ShopNongSan.Services;
 using System.Security.Claims;
+using System.Globalization;
 
 namespace ShopNongSan.Areas.Customer.Controllers
 {
@@ -275,13 +276,26 @@ namespace ShopNongSan.Areas.Customer.Controllers
                     TempData["toastType"] = "success";
                     return Redirect($"/Customer/DonHangs/Details/{order.Id}");
                 }
+                else if (model.PhuongThucThanhToan == "STRIPE")
+                {
+                    await tx.CommitAsync();
+
+                    var rawAmount = order.TongTien.ToString("0.##", CultureInfo.InvariantCulture);
+
+                    // gửi cả amount + orderId sang trang Stripe
+                    return Redirect($"/payment/pay?amount={rawAmount}&orderId={order.Id}");
+                }
+
+
+
                 else
                 {
-                    await tx.CommitAsync(); // đơn ở "Chờ xử lý", chưa trừ kho
-                    var payUrl = _vnp.CreatePaymentUrl(order.MaDonHang, order.TongTien,
-                        orderInfo: $"Thanh toan don hang {order.MaDonHang}");
-                    return Redirect(payUrl);
+                    await tx.RollbackAsync();
+                    TempData["toast"] = "Phương thức thanh toán không hợp lệ.";
+                    TempData["toastType"] = "danger";
+                    return View("Checkout", model);
                 }
+
             }
             catch (Exception ex)
             {

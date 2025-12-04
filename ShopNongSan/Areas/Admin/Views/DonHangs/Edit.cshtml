@@ -16,6 +16,7 @@
     string PtttText(string? v)
         => v == "BANK" ? "Chuyển khoản"
          : v == "COD" ? "Thanh toán khi nhận (COD)"
+          : v == "STRIPE" ? "Stripe (Thanh toán thẻ)"
          : "-";
 
     string FormatDateTime(DateTime? dt)

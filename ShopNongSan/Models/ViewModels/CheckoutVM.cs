@@ -31,8 +31,9 @@ namespace ShopNongSan.Models.ViewModels
         public DateTime? NgayGiao { get; set; }
 
         [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán")]
-        [RegularExpression("COD|VNPAY", ErrorMessage = "Phương thức không hợp lệ")]
-        public string PhuongThucThanhToan { get; set; } = "COD";   // ✅ "COD" | "VNPAY"
+        [RegularExpression("COD|STRIPE", ErrorMessage = "Phương thức không hợp lệ")]
+        public string PhuongThucThanhToan { get; set; } = "COD";
+
 
         // ==== MUA NGAY ====
         public bool IsBuyNow { get; set; }

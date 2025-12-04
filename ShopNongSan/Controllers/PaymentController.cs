@@ -1,49 +1,116 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShopNongSan.Models;
-using ShopNongSan.Services;
-
+﻿using Microsoft.AspNetCore.Mvc;
+using Stripe;
+using ShopNongSan.Models;   // nhớ using namespace DbContext
 namespace ShopNongSan.Controllers
 {
-    [ApiController]
-    [Route("api/payment")]
-    public class PaymentController : ControllerBase
+
+
+    public class PaymentController : Controller
     {
+        private readonly IConfiguration _config;
         private readonly NongSanContext _db;
-        private readonly IVnPayService _vnp;
-        public PaymentController(NongSanContext db, IVnPayService vnp) { _db = db; _vnp = vnp; }
 
-        [HttpPost("vnpay-ipn")]
-        [AllowAnonymous]
-        public async Task<IActionResult> VnPayIpn()
+        public PaymentController(IConfiguration config, NongSanContext db)
         {
-            if (!_vnp.ValidateReturn(Request.Query, out var code, out var resp, out var amount))
-                return Ok("INVALID|CHECKSUM");
+            _config = config;
+            _db = db;
+        }
 
-            var order = await _db.DonHangs
-                .Include(d => d.DonHangChiTiets).ThenInclude(ct => ct.SanPham)
-                .FirstOrDefaultAsync(d => d.MaDonHang == code);
 
-            if (order == null) return Ok("INVALID|ORDER_NOT_FOUND");
-
-            if (resp == "00")
+        // ⭐ Tạo PaymentIntent
+        [HttpPost("/payment/create-intent")]
+        public IActionResult CreateIntent([FromBody] CreateIntentRequest req)
+        {
+            try
             {
-                if (!string.Equals(order.TrangThai, "Đã xác nhận", StringComparison.OrdinalIgnoreCase))
+                // Debug xem dữ liệu có về đúng không
+                Console.WriteLine(">>> RAW vndAmount = " + req.vndAmount);
+
+                // ⭐ Chuyển string → long (loại bỏ dấu phẩy, dấu chấm)
+                long vnd = long.Parse(
+                    req.vndAmount
+                    .Replace(".", "")
+                    .Replace(",", "")
+                    .Trim()
+                );
+
+                Console.WriteLine(">>> VND cleaned = " + vnd);
+
+                // ⭐ Convert VND → USD
+                decimal usd = Math.Round(vnd / 25000m, 2);
+                long amountInCents = (long)(usd * 100);
+
+                Console.WriteLine(">>> USD = " + usd + ", cents = " + amountInCents);
+
+                StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
+
+                var options = new PaymentIntentCreateOptions
                 {
-                    using var tx = await _db.Database.BeginTransactionAsync();
-                    foreach (var ct in order.DonHangChiTiets)
-                        if (ct.SanPham != null) ct.SanPham.SoLuongTon -= ct.SoLuong;
+                    Amount = amountInCents,   // phải tính bằng CENT!!!
+                    Currency = "usd",
+                    AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
+                    {
+                        Enabled = true
+                    }
+                };
+
+                var service = new PaymentIntentService();
+                var intent = service.Create(options);
+
+                return Json(new { clientSecret = intent.ClientSecret });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(">>> Stripe ERROR: " + ex.Message);
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // ⭐ Trang kết quả
+        [HttpGet("/payment/success")]
+        public async Task<IActionResult> Success(long orderId)
+        {
+            var order = await _db.DonHangs.FindAsync(orderId);
+            if (order != null)
+            {
+                if (string.Equals(order.TrangThai, "Chờ xử lý", StringComparison.OrdinalIgnoreCase))
+                {
                     order.TrangThai = "Đã xác nhận";
                     await _db.SaveChangesAsync();
-                    await tx.CommitAsync();
                 }
-                return Ok("OK");
+
+                TempData["toast"] = $"Thanh toán Stripe thành công cho đơn {order.MaDonHang}.";
+                TempData["toastType"] = "success";
+
+                // 👉 quay về trang chi tiết đơn (view bạn gửi)
+                return Redirect($"/Customer/DonHangs/Details/{order.Id}");
             }
 
-            order.TrangThai = "Chờ xử lý";
-            await _db.SaveChangesAsync();
-            return Ok("FAILED");
+            TempData["toast"] = "Không tìm thấy đơn hàng sau khi thanh toán.";
+            TempData["toastType"] = "danger";
+            return Redirect("/Customer/DonHangs");
         }
+
+
+        [HttpGet("/payment/fail")]
+        public IActionResult Fail() => View();
+
+        // ⭐ Trang giao diện Payment Element
+        [HttpGet("/payment/pay")]
+        public IActionResult Pay(decimal amount, long orderId)
+        {
+            ViewBag.Amount = amount;
+            ViewBag.OrderId = orderId;  // ⭐ truyền sang view
+            ViewBag.StripePk = _config["Stripe:PublishableKey"];
+            return View();
+        }
+
+
+    }
+
+    // ⭐ Model nhận từ fetch (JSON body)
+    public class CreateIntentRequest
+    {
+        public string vndAmount { get; set; }
     }
 }

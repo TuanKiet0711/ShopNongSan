@@ -25,9 +25,11 @@
     var stepIndex = CurrentStepIndex(Model.TrangThai);
 
     string PtttText(string? v) =>
-        v == "VNPAY" ? "VNPAY (thanh toán trực tuyến)"
-        : v == "COD" ? "Thanh toán khi nhận (COD)"
-        : "-";
+    v == "VNPAY" ? "VNPAY (Thanh toán trực tuyến)"
+    : v == "COD" ? "Thanh toán khi nhận (COD)"
+    : v == "STRIPE" ? "Stripe (Thanh toán quốc tế)"
+    : "-";
+
 }
 <!-- HERO -->
 <div class="card border-0 shadow-sm rounded-4 mb-3" style="background:linear-gradient(135deg,#d8f3dc,#b7e4c7);">
