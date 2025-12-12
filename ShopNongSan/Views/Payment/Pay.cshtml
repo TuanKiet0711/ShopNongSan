@@ -15,27 +15,204 @@
     var rawAmount = amountVnd.ToString("0", CultureInfo.InvariantCulture);
 }
 
-<h2>Thanh toán đơn hàng</h2>
-<p>Số tiền: <b>@displayAmount ₫</b></p>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
-<div id="payment-element"></div>
+<style>
+    html, body {
+        height: 100%;
+    }
 
-<div class="mt-3 d-flex gap-2">
-    <button id="pay-btn" class="btn btn-primary">
-        <i class="bi bi-credit-card"></i> Thanh toán
-    </button>
+    body {
+        margin: 0;
+        background: linear-gradient(135deg, #16a34a, #22c55e);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    }
 
-    <!-- ⭐ Nút quay lại trang Checkout -->
-    
+    .payment-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: stretch;
+    }
+
+    /* LEFT */
+    .payment-left {
+        flex: 1;
+        color: #ffffff;
+        padding: 80px 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .payment-left h1 {
+        font-weight: 800;
+        font-size: 42px;
+        margin-bottom: 20px;
+    }
+
+    .payment-left p {
+        font-size: 16px;
+        opacity: .95;
+        max-width: 420px;
+    }
+
+    .price-box {
+        margin-top: 40px;
+        padding: 26px;
+        border-radius: 22px;
+        background: rgba(255,255,255,.18);
+        backdrop-filter: blur(12px);
+        width: fit-content;
+    }
+
+    .price-box small {
+        opacity: .9;
+    }
+
+    .price-box h2 {
+        font-weight: 900;
+        margin-top: 6px;
+        font-size: 38px;
+    }
+
+    /* RIGHT */
+    .payment-right {
+        flex: 1;
+        background: #f0fdf4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+    }
+
+    .payment-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 480px;
+        padding: 38px;
+        border-radius: 26px;
+        box-shadow: 0 30px 60px rgba(0,0,0,.12);
+        animation: fadeUp .4s ease;
+    }
+
+    @@keyframes fadeUp {
+        from { opacity: 0; transform: translateY(24px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .payment-card h4 {
+        font-weight: 700;
+        margin-bottom: 26px;
+        text-align: center;
+        color: #14532d;
+    }
+
+    #payment-element {
+        margin-bottom: 26px;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #16a34a, #22c55e);
+        border: none;
+        border-radius: 16px;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        box-shadow: 0 8px 20px rgba(34,197,94,.35);
+    }
+
+    .btn-pay:hover {
+        opacity: .95;
+        transform: translateY(-1px);
+    }
+
+    .btn-back {
+        border-radius: 16px;
+        padding: 14px;
+        font-weight: 500;
+    }
+
+    .secure-text {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 13px;
+        color: #166534;
+    }
+
+    /* MOBILE */
+    @@media (max-width: 992px) {
+        .payment-page {
+            flex-direction: column;
+        }
+
+        .payment-left {
+            padding: 50px 30px;
+            text-align: center;
+            align-items: center;
+        }
+
+        .payment-left p {
+            max-width: none;
+        }
+
+        .payment-right {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<div class="payment-page">
+
+    <!-- LEFT -->
+    <div class="payment-left">
+        <h1>Thanh toán an toàn</h1>
+        <p>
+            Hoàn tất đơn hàng nhanh chóng với hệ thống bảo mật chuẩn quốc tế.
+            Mọi thông tin thanh toán đều được mã hóa tuyệt đối.
+        </p>
+
+        <div class="price-box">
+            <small>Tổng thanh toán</small>
+            <h2>@displayAmount ₫</h2>
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="payment-right">
+        <div class="payment-card">
+            <h4>
+                <i class="bi bi-credit-card me-1"></i>
+                Thông tin thanh toán
+            </h4>
+
+            <div id="payment-element"></div>
+
+            <div class="d-grid gap-3">
+                <button id="pay-btn" class="btn btn-pay text-white">
+                    Thanh toán ngay
+                </button>
+
+                <button type="button" class="btn btn-light btn-back" onclick="history.back()">
+    ← Quay lại đặt hàng
+</button>
+            </div>
+
+            <div class="secure-text">
+                <i class="bi bi-lock-fill"></i>
+                Thanh toán an toàn • Stripe
+            </div>
+        </div>
+    </div>
 
 </div>
 
 <script src="https://js.stripe.com/v3/"></script>
+
 <script>
     const stripe = Stripe("@ViewBag.StripePk");
     const orderId = @orderId;
     const vndAmount = "@rawAmount";
-
     let elements;
 
     async function init() {
@@ -55,7 +232,6 @@
         const { clientSecret } = await resp.json();
 
         elements = stripe.elements({ clientSecret });
-
         const paymentElement = elements.create("payment");
         paymentElement.mount("#payment-element");
     }
@@ -70,10 +246,6 @@
             }
         });
 
-        if (error) {
-            alert(error.message);
-        }
+        if (error) alert(error.message);
     });
 </script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />

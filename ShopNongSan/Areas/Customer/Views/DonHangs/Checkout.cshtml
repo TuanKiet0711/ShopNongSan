@@ -44,6 +44,12 @@
                                   placeholder="Nhập địa chỉ giao hàng"></textarea>
                         <span asp-validation-for="DiaChi" class="text-danger"></span>
                     </div>
+                    <div class="col-12">
+                        <label class="form-label">Ghi chú (tuỳ chọn)</label>
+                        <textarea asp-for="GhiChu" class="form-control" rows="2"
+                                  placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi đến..."></textarea>
+                        <span asp-validation-for="GhiChu" class="text-danger"></span>
+                    </div>
 
                     <div class="col-12">
                         <label class="form-label">Ngày giao hàng mong muốn</label>
