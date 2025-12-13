@@ -50,7 +50,9 @@ Chuỗi kết nối database
 "ConnectionStrings": {
   "DefaultConnection": "Server=.;Database=NongSan;Trusted_Connection=True;TrustServerCertificate=True"
 }
+```
 ### Bước 4: Chạy chương trình
+
 ### Bước 5: Dùng tài khoản admin để thao tác tất cả chức năng
 - Tên đăng nhập: kietletuan002
 - Mật khẩu: kietlatoi1
