@@ -66,18 +66,37 @@
         <form method="get" class="row g-3 align-items-end needs-validation" novalidate>
             <div class="col-sm-4 col-md-3">
                 <label class="form-label">Từ ngày</label>
-                <input type="date" class="form-control" name="from" value="@ViewBag.FilterFrom" required />
+               <input type="text"
+       class="form-control flatpickr"
+       name="from"
+       value="@ViewBag.FilterFrom"
+       placeholder="dd/MM/yyyy"
+       required />
                 <div class="invalid-feedback">Chọn ngày bắt đầu.</div>
             </div>
             <div class="col-sm-4 col-md-3">
                 <label class="form-label">Đến ngày</label>
-                <input type="date" class="form-control" name="to" value="@ViewBag.FilterTo" required />
+        <input type="text"
+       class="form-control flatpickr"
+       name="to"
+       value="@ViewBag.FilterTo"
+       placeholder="dd/MM/yyyy"
+       required />
                 <div class="invalid-feedback">Chọn ngày kết thúc.</div>
             </div>
             <div class="col-sm-4 col-md-3 d-flex gap-2">
                 <button class="btn btn-green align-self-end px-4">
                     <i class="bi bi-funnel"></i> Lọc
                 </button>
+                <a class="btn btn-outline-primary align-self-end"
+   asp-area="Admin"
+   asp-controller="Home"
+   asp-action="ExportReport"
+   asp-route-from="@ViewBag.FilterFrom"
+   asp-route-to="@ViewBag.FilterTo">
+    <i class="bi bi-file-earmark-excel"></i> Xuất báo cáo
+</a>
+
                 <a class="btn btn-outline-green align-self-end" asp-area="Admin" asp-controller="Home" asp-action="Index">
                     Reset
                 </a>
@@ -290,4 +309,14 @@
             }, false);
         })();
     </script>
+    <script>
+    flatpickr(".flatpickr", {
+        locale: "vn",
+        dateFormat: "Y-m-d",      // 👈 format gửi về server
+        altInput: true,
+        altFormat: "d/m/Y",       // 👈 format hiển thị cho người dùng
+        allowInput: true
+    });
+</script>
+
 }

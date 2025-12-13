@@ -53,8 +53,12 @@
 
                     <div class="col-12">
                         <label class="form-label">Ngày giao hàng mong muốn</label>
-                        <input asp-for="NgayGiao" type="date" class="form-control"
-                               min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <input asp-for="NgayGiao"
+       type="text"
+       class="form-control flatpickr-delivery"
+       placeholder="dd/MM/yyyy" />
+
+                              
                         <span asp-validation-for="NgayGiao" class="text-danger"></span>
                     </div>
 
@@ -155,6 +159,16 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+<script>
+    flatpickr(".flatpickr-delivery", {
+        locale: "vn",
+        dateFormat: "Y-m-d",   // 👉 gửi về server
+        altInput: true,
+        altFormat: "d/m/Y",    // 👉 hiển thị cho người dùng
+        minDate: "today",      // 👉 không chọn ngày quá khứ
+        allowInput: true
+    });
+</script>
 
     <script>
         // Show/hide thông báo theo phương thức thanh toán
