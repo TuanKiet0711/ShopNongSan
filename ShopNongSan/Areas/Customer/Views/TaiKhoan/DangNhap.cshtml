@@ -1,38 +1,100 @@
 ﻿@model DangNhapVM
 @{
     ViewData["Title"] = "Đăng nhập";
-  
     Layout = "~/Areas/Customer/Views/Shared/_CustomerLayout.cshtml";
 
+    int MAX_FAIL = 5;
+    int failCount = Model?.FailCount ?? 0;
+    int remainTry = Math.Max(0, MAX_FAIL - failCount);
 
+    bool isBlocked = (Model?.BlockUntilMs ?? 0) > 0 || (Model?.RemainingSeconds ?? 0) > 0;
 }
+
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">
         <h3 class="mb-3">Đăng nhập</h3>
+
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        @* ✅ Hiện số lần còn lại (khi đã nhập sai nhưng CHƯA bị khóa) *@
+        @if (!isBlocked && failCount > 0)
+        {
+            <div class="alert alert-warning py-2">
+                Sai tài khoản hoặc mật khẩu. Bạn chỉ được nhập sai tối đa <b>@MAX_FAIL</b> lần.
+                Còn <b>@remainTry</b> lần.
+            </div>
+        }
+
+        @* ✅ Box hiển thị countdown khi bị khóa *@
+        <div id="rateLimitBox" class="alert alert-danger py-2 d-none"></div>
+
         <form asp-action="DangNhap" method="post">
             @Html.AntiForgeryToken()
+
             <div class="mb-3">
                 <label asp-for="TenDangNhap" class="form-label"></label>
                 <input asp-for="TenDangNhap" class="form-control" />
                 <span asp-validation-for="TenDangNhap" class="text-danger"></span>
             </div>
+
             <div class="mb-3">
                 <label asp-for="MatKhau" class="form-label"></label>
                 <input asp-for="MatKhau" type="password" class="form-control" />
                 <span asp-validation-for="MatKhau" class="text-danger"></span>
             </div>
+
             <div class="form-check mb-3">
                 <input asp-for="GhiNho" class="form-check-input" />
                 <label asp-for="GhiNho" class="form-check-label">Ghi nhớ mật khẩu</label>
             </div>
+
             <input type="hidden" asp-for="ReturnUrl" />
-            <button class="btn btn-success w-100" type="submit">Đăng nhập</button>
+
+            <button id="btnLogin" class="btn btn-success w-100" type="submit">Đăng nhập</button>
         </form>
+
         <p class="mt-3">Chưa có tài khoản? <a asp-action="DangKy">Đăng ký</a></p>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+    (function () {
+        const box = document.getElementById("rateLimitBox");
+        const btn = document.getElementById("btnLogin");
+
+        // ✅ LẤY END TIME TỪ UNIX MILLISECONDS (khỏi parse ISO)
+        const endMsFromServer = Number("@(Model?.BlockUntilMs ?? 0)");
+        const fallbackRemain = Number("@(Model?.RemainingSeconds ?? 0)");
+
+        if (endMsFromServer <= 0 && fallbackRemain <= 0) return;
+
+        box.classList.remove("d-none");
+
+        // tuỳ chọn: disable nút trong lúc bị khóa
+        if (btn) btn.disabled = true;
+
+        // nếu server không gửi endMs (hiếm) thì tạo từ fallback
+        const endMs = endMsFromServer > 0 ? endMsFromServer : (Date.now() + fallbackRemain * 1000);
+
+        function tick() {
+            const remain = Math.max(0, Math.ceil((endMs - Date.now()) / 1000));
+
+            if (remain <= 0) {
+                box.textContent = "Bạn có thể thử đăng nhập lại.";
+                box.classList.remove("alert-danger");
+                box.classList.add("alert-success");
+                if (btn) btn.disabled = false;
+                return;
+            }
+
+            box.textContent = `Bạn đã nhập sai 5 lần. Vui lòng thử lại sau ${remain}s.`;
+            setTimeout(tick, 200);
+        }
+
+        tick();
+    })();
+    </script>
 }

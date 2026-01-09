@@ -17,6 +17,8 @@ public partial class NongSanContext : DbContext
 
     public virtual DbSet<DanhMuc> DanhMucs { get; set; }
 
+    public virtual DbSet<DemRateLimit> DemRateLimits { get; set; }
+
     public virtual DbSet<DonHang> DonHangs { get; set; }
 
     public virtual DbSet<DonHangChiTiet> DonHangChiTiets { get; set; }
@@ -24,6 +26,8 @@ public partial class NongSanContext : DbContext
     public virtual DbSet<GioHang> GioHangs { get; set; }
 
     public virtual DbSet<GioHangChiTiet> GioHangChiTiets { get; set; }
+
+    public virtual DbSet<NhatKyDangNhap> NhatKyDangNhaps { get; set; }
 
     public virtual DbSet<SanPham> SanPhams { get; set; }
 
@@ -35,28 +39,45 @@ public partial class NongSanContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=NongSan;Trusted_Connection=True;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=NongSan;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DanhMuc>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__DanhMuc__3214EC071F8DDA0E");
+            entity.HasKey(e => e.Id).HasName("PK__DanhMuc__3214EC07B48DDB35");
 
             entity.ToTable("DanhMuc");
 
-            entity.HasIndex(e => e.Ten, "UQ__DanhMuc__C451FA83ABD54D82").IsUnique();
+            entity.HasIndex(e => e.Ten, "UQ__DanhMuc__C451FA83AA6A5135").IsUnique();
 
             entity.Property(e => e.Ten).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<DemRateLimit>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__DemRateL__3214EC07E25B05AE");
+
+            entity.ToTable("DemRateLimit");
+
+            entity.HasIndex(e => new { e.GiaTriKhoa, e.CapNhatLuc }, "IX_DemRateLimit_Key_CapNhatLuc").IsDescending(false, true);
+
+            entity.HasIndex(e => new { e.GiaTriKhoa, e.Endpoint, e.BatDauCuaSo, e.KetThucCuaSo }, "UX_DemRateLimit_Key_Window").IsUnique();
+
+            entity.Property(e => e.CapNhatLuc).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.Endpoint)
+                .HasMaxLength(100)
+                .HasDefaultValue("/tai-khoan/dang-nhap");
+            entity.Property(e => e.GiaTriKhoa).HasMaxLength(200);
+        });
+
         modelBuilder.Entity<DonHang>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__DonHang__3214EC07D658CA63");
+            entity.HasKey(e => e.Id).HasName("PK__DonHang__3214EC074BFEB4D4");
 
             entity.ToTable("DonHang");
 
-            entity.HasIndex(e => e.MaDonHang, "UQ__DonHang__129584ACA72906BD").IsUnique();
+            entity.HasIndex(e => e.MaDonHang, "UQ__DonHang__129584AC20A845C6").IsUnique();
 
             entity.Property(e => e.DiaChi).HasMaxLength(200);
             entity.Property(e => e.GhiChu).HasMaxLength(300);
@@ -79,7 +100,7 @@ public partial class NongSanContext : DbContext
 
         modelBuilder.Entity<DonHangChiTiet>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__DonHangC__3214EC07FBC5BB09");
+            entity.HasKey(e => e.Id).HasName("PK__DonHangC__3214EC0789E683EB");
 
             entity.ToTable("DonHangChiTiet");
 
@@ -125,9 +146,38 @@ public partial class NongSanContext : DbContext
                 .HasConstraintName("FK_GHCT_SanPham");
         });
 
+        modelBuilder.Entity<NhatKyDangNhap>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__NhatKyDa__3214EC071BB3DDFA");
+
+            entity.ToTable("NhatKyDangNhap");
+
+            entity.HasIndex(e => new { e.DiaChiIp, e.ThoiGian }, "IX_NhatKyDangNhap_DiaChiIP_ThoiGian").IsDescending(false, true);
+
+            entity.HasIndex(e => new { e.KhoaRateLimit, e.ThoiGian }, "IX_NhatKyDangNhap_KhoaRateLimit_ThoiGian").IsDescending(false, true);
+
+            entity.HasIndex(e => new { e.TaiKhoanId, e.ThoiGian }, "IX_NhatKyDangNhap_TaiKhoanId_ThoiGian").IsDescending(false, true);
+
+            entity.HasIndex(e => new { e.TenDangNhap, e.ThoiGian }, "IX_NhatKyDangNhap_TenDangNhap_ThoiGian").IsDescending(false, true);
+
+            entity.Property(e => e.DiaChiIp)
+                .HasMaxLength(45)
+                .HasColumnName("DiaChiIP");
+            entity.Property(e => e.Endpoint)
+                .HasMaxLength(100)
+                .HasDefaultValue("/tai-khoan/dang-nhap");
+            entity.Property(e => e.KhoaRateLimit).HasMaxLength(200);
+            entity.Property(e => e.PhuongThuc)
+                .HasMaxLength(10)
+                .HasDefaultValue("POST");
+            entity.Property(e => e.TenDangNhap).HasMaxLength(50);
+            entity.Property(e => e.ThoiGian).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.ThongBao).HasMaxLength(200);
+        });
+
         modelBuilder.Entity<SanPham>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__SanPham__3214EC0729DF377F");
+            entity.HasKey(e => e.Id).HasName("PK__SanPham__3214EC07D2D11B4F");
 
             entity.ToTable("SanPham");
 
@@ -150,11 +200,13 @@ public partial class NongSanContext : DbContext
 
         modelBuilder.Entity<TaiKhoan>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TaiKhoan__3214EC07D60341CD");
+            entity.HasKey(e => e.Id).HasName("PK__TaiKhoan__3214EC07D8DAD552");
 
             entity.ToTable("TaiKhoan");
 
-            entity.HasIndex(e => e.TenDangNhap, "UQ__TaiKhoan__55F68FC0B46025BB").IsUnique();
+            entity.HasIndex(e => e.TenDangNhap, "UQ__TaiKhoan__55F68FC0BDFBE154").IsUnique();
+
+            entity.HasIndex(e => e.TenDangNhap, "UX_TaiKhoan_TenDangNhap").IsUnique();
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.HoTen).HasMaxLength(100);
@@ -168,11 +220,11 @@ public partial class NongSanContext : DbContext
 
         modelBuilder.Entity<ThongTinNguoiDung>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ThongTin__3214EC07DC8EDCDB");
+            entity.HasKey(e => e.Id).HasName("PK__ThongTin__3214EC07A33E0D53");
 
             entity.ToTable("ThongTinNguoiDung");
 
-            entity.HasIndex(e => e.TaiKhoanId, "UQ__ThongTin__9A124B4426867C18").IsUnique();
+            entity.HasIndex(e => e.TaiKhoanId, "UQ__ThongTin__9A124B447EAC6B6E").IsUnique();
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.DiaChi).HasMaxLength(200);
@@ -187,11 +239,11 @@ public partial class NongSanContext : DbContext
 
         modelBuilder.Entity<ThuongHieu>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ThuongHi__3214EC07A075CB8D");
+            entity.HasKey(e => e.Id).HasName("PK__ThuongHi__3214EC0749EA4C89");
 
             entity.ToTable("ThuongHieu");
 
-            entity.HasIndex(e => e.Ten, "UQ__ThuongHi__C451FA831A884426").IsUnique();
+            entity.HasIndex(e => e.Ten, "UQ__ThuongHi__C451FA83C9F0ADCA").IsUnique();
 
             entity.Property(e => e.Ten).HasMaxLength(100);
         });

@@ -6,10 +6,11 @@ using ShopNongSan.Services;
 using Stripe; // 👈 thêm dòng này
 
 var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine(">>> RUNNING PROGRAM.CS: " + typeof(Program).Assembly.FullName);
 
 // MVC
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddScoped<RateLimitService>();
 // Cookie Authentication (HTTPS + top-level redirect compatible)
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

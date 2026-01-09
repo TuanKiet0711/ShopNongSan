@@ -13,6 +13,13 @@ public class DangNhapVM
 
     public bool GhiNho { get; set; } = false;
     public string? ReturnUrl { get; set; }
+
+    // RATE LIMIT UI
+    public int FailCount { get; set; } = 0;
+    public int RemainingSeconds { get; set; } = 0;
+
+    // ✅ thêm cái này để JS đếm chuẩn 100%
+    public long BlockUntilMs { get; set; } = 0;
 }
 
 public class DangKyVM
@@ -36,4 +43,3 @@ public class DangKyVM
     [Compare("MatKhau", ErrorMessage = "Mật khẩu nhập lại không khớp")]
     public string NhapLaiMatKhau { get; set; } = "";
 }
-
