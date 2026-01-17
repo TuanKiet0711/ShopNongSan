@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Models;
 using ShopNongSan.Models.ViewModels;
+using ShopNongSan.Services;
+using System;
+using System.Security.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,7 +15,16 @@ namespace ShopNongSan.Controllers
     public class SanPhamsController : Controller
     {
         private readonly NongSanContext _context;
-        public SanPhamsController(NongSanContext context) => _context = context;
+        private readonly RateLimitService _rate;
+
+        private const int SEARCH_MAX = 15;
+        private static readonly TimeSpan SEARCH_WINDOW = TimeSpan.FromMinutes(1);
+
+        public SanPhamsController(NongSanContext context, RateLimitService rate)
+        {
+            _context = context;
+            _rate = rate;
+        }
 
         private static decimal? ParseVnd(string? input)
         {
@@ -25,6 +37,30 @@ namespace ShopNongSan.Controllers
         // GET: Customer/SanPhams
         public async Task<IActionResult> Index([FromQuery] SanPhamFilterVM filter)
         {
+            const string endpoint = "/san-pham";
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var userKey = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User?.Identity?.Name;
+            var key = RateLimitService.BuildKey(userKey, ip);
+
+            var blocked = await _rate.IsBlockedAsync(key, endpoint, SEARCH_MAX, SEARCH_WINDOW);
+            var isBlocked = blocked.IsBlocked && blocked.BlockUntil.HasValue;
+            if (isBlocked)
+            {
+                var untilUtc = DateTime.SpecifyKind(blocked.BlockUntil.Value, DateTimeKind.Utc);
+                var remaining = Math.Max(0, (int)Math.Ceiling((untilUtc - DateTime.UtcNow).TotalSeconds));
+                var msg = $"\u0110ang b\u1ecb gi\u1edbi h\u1ea1n t\u00ecm ki\u1ebfm, vui l\u00f2ng th\u1eed l\u1ea1i sau {remaining}s.";
+
+                ViewBag.RateLimitMsg = msg;
+                ViewBag.RateLimitRemainingSeconds = remaining;
+
+                await _rate.LogAsync(null, User?.Identity?.Name, ip, key, endpoint, "GET",
+                    thanhCong: false, biGioiHan: true, thongBao: msg);
+            }
+            else
+            {
+                await _rate.RegisterHitAsync(key, endpoint, SEARCH_MAX, SEARCH_WINDOW);
+            }
+
             var query = _context.SanPhams
                 .Include(sp => sp.DanhMuc)
                 .Include(sp => sp.ThuongHieu)

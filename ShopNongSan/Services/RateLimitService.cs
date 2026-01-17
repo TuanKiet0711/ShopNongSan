@@ -21,76 +21,83 @@ namespace ShopNongSan.Services
             => $"{(username ?? "").Trim().ToLower()}|{(ip ?? "").Trim()}";
 
         // kiểm tra đang bị chặn hay không (nếu bị chặn trả về message)
-       public async Task<(bool IsBlocked, string Message, DateTime? BlockUntil, int FailCount)> IsBlockedAsync(string key, string endpoint)
-{
-    var now = DateTime.UtcNow;
+        public Task<(bool IsBlocked, string Message, DateTime? BlockUntil, int FailCount)> IsBlockedAsync(string key, string endpoint)
+            => IsBlockedAsync(key, endpoint, MAX_FAIL, WINDOW);
 
-    var counter = await _db.DemRateLimits
-        .Where(x => x.GiaTriKhoa == key && x.Endpoint == endpoint)
-        .OrderByDescending(x => x.CapNhatLuc)
-        .FirstOrDefaultAsync();
-
-    if (counter == null) return (false, "", null, 0);
-
-    // nếu đang trong cửa sổ 60s và đã vượt ngưỡng
-    if (counter.KetThucCuaSo > now && counter.SoLuong >= MAX_FAIL)
-    {
-        var until = counter.KetThucCuaSo;
-        var remain = (int)Math.Ceiling((until - now).TotalSeconds);
-        return (true, $"Bạn đã nhập sai quá {MAX_FAIL} lần. Vui lòng thử lại sau {remain}s.", until, counter.SoLuong);
-    }
-
-    return (false, "", null, counter.SoLuong);
-}
-
-public async Task RegisterFailAsync(string key, string endpoint)
-{
-    var now = DateTime.UtcNow;
-
-    var counter = await _db.DemRateLimits
-        .Where(x => x.GiaTriKhoa == key && x.Endpoint == endpoint)
-        .OrderByDescending(x => x.CapNhatLuc)
-        .FirstOrDefaultAsync();
-
-    // nếu chưa có hoặc đã hết cửa sổ -> tạo cửa sổ mới
-    if (counter == null || counter.KetThucCuaSo <= now)
-    {
-        counter = new DemRateLimit
+        public async Task<(bool IsBlocked, string Message, DateTime? BlockUntil, int FailCount)> IsBlockedAsync(
+            string key, string endpoint, int maxFail, TimeSpan window)
         {
-            GiaTriKhoa = key,
-            Endpoint = endpoint,
-            BatDauCuaSo = now,
-            KetThucCuaSo = now.Add(WINDOW),
-            SoLuong = 1,
-            CapNhatLuc = now
-        };
-        _db.DemRateLimits.Add(counter);
-        await _db.SaveChangesAsync();
-        return;
-    }
+            var now = DateTime.UtcNow;
 
-    // nếu đã đạt ngưỡng rồi thì thôi (đang bị khóa)
-    if (counter.SoLuong >= MAX_FAIL && counter.KetThucCuaSo > now)
-        return;
+            var counter = await _db.DemRateLimits
+                .Where(x => x.GiaTriKhoa == key && x.Endpoint == endpoint)
+                .OrderByDescending(x => x.CapNhatLuc)
+                .FirstOrDefaultAsync();
 
-    // tăng đếm
-    counter.SoLuong += 1;
-    counter.CapNhatLuc = now;
+            if (counter == null) return (false, "", null, 0);
 
-    // ✅ Sai lần thứ 5 => KHÓA 60s TỪ LÚC NÀY (luôn hiện ~60s)
-    if (counter.SoLuong >= MAX_FAIL)
-    {
-        counter.BatDauCuaSo = now;
-        counter.KetThucCuaSo = now.Add(WINDOW);
-    }
+            // n?u dang trong c?a s? v… da vu?t ngu?ng
+            if (counter.KetThucCuaSo > now && counter.SoLuong >= maxFail)
+            {
+                var until = counter.KetThucCuaSo;
+                var remain = (int)Math.Ceiling((until - now).TotalSeconds);
+                return (true, $"B?n da nh?p sai qu  {maxFail} l?n. Vui l•ng th? l?i sau {remain}s.", until, counter.SoLuong);
+            }
 
-    _db.DemRateLimits.Update(counter);
-    await _db.SaveChangesAsync();
-}
+            return (false, "", null, counter.SoLuong);
+        }
 
+        public Task RegisterFailAsync(string key, string endpoint)
+            => RegisterCountAsync(key, endpoint, MAX_FAIL, WINDOW);
 
+        public Task RegisterHitAsync(string key, string endpoint, int maxCount, TimeSpan window)
+            => RegisterCountAsync(key, endpoint, maxCount, window);
 
-        // gọi khi đăng nhập thành công (reset đếm để không chặn sai quá mức)
+        private async Task RegisterCountAsync(string key, string endpoint, int maxCount, TimeSpan window)
+        {
+            var now = DateTime.UtcNow;
+
+            var counter = await _db.DemRateLimits
+                .Where(x => x.GiaTriKhoa == key && x.Endpoint == endpoint)
+                .OrderByDescending(x => x.CapNhatLuc)
+                .FirstOrDefaultAsync();
+
+            // n?u chua c¢ ho?c da h?t c?a s? -> t?o c?a s? m?i
+            if (counter == null || counter.KetThucCuaSo <= now)
+            {
+                counter = new DemRateLimit
+                {
+                    GiaTriKhoa = key,
+                    Endpoint = endpoint,
+                    BatDauCuaSo = now,
+                    KetThucCuaSo = now.Add(window),
+                    SoLuong = 1,
+                    CapNhatLuc = now
+                };
+                _db.DemRateLimits.Add(counter);
+                await _db.SaveChangesAsync();
+                return;
+            }
+
+            // n?u da d?t ngu?ng r?i th th“i (dang b? kh¢a)
+            if (counter.SoLuong >= maxCount && counter.KetThucCuaSo > now)
+                return;
+
+            // tang d?m
+            counter.SoLuong += 1;
+            counter.CapNhatLuc = now;
+
+            // ? Dat ngu?ng => khoa tu luc nay
+            if (counter.SoLuong >= maxCount)
+            {
+                counter.BatDauCuaSo = now;
+                counter.KetThucCuaSo = now.Add(window);
+            }
+
+            _db.DemRateLimits.Update(counter);
+            await _db.SaveChangesAsync();
+        }
+
         public async Task ResetAsync(string key, string endpoint)
         {
             var now = DateTime.UtcNow;

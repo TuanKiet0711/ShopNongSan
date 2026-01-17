@@ -61,40 +61,40 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-    (function () {
-        const box = document.getElementById("rateLimitBox");
-        const btn = document.getElementById("btnLogin");
+(function () {
+    const box = document.getElementById("rateLimitBox");
+    const btn = document.getElementById("btnLogin");
 
-        // ✅ LẤY END TIME TỪ UNIX MILLISECONDS (khỏi parse ISO)
-        const endMsFromServer = Number("@(Model?.BlockUntilMs ?? 0)");
-        const fallbackRemain = Number("@(Model?.RemainingSeconds ?? 0)");
+    const endMsFromServer = Number("@(Model?.BlockUntilMs ?? 0)");
+    const fallbackRemain = Number("@(Model?.RemainingSeconds ?? 0)");
 
-        if (endMsFromServer <= 0 && fallbackRemain <= 0) return;
+    if (endMsFromServer <= 0 && fallbackRemain <= 0) return;
 
-        box.classList.remove("d-none");
+    box.classList.remove("d-none");
 
-        // tuỳ chọn: disable nút trong lúc bị khóa
-        if (btn) btn.disabled = true;
+    // ✅ KHÔNG KHÓA NÚT ĐĂNG NHẬP
+    // if (btn) btn.disabled = true;
 
-        // nếu server không gửi endMs (hiếm) thì tạo từ fallback
-        const endMs = endMsFromServer > 0 ? endMsFromServer : (Date.now() + fallbackRemain * 1000);
+    const endMs = endMsFromServer > 0 ? endMsFromServer : (Date.now() + fallbackRemain * 1000);
 
-        function tick() {
-            const remain = Math.max(0, Math.ceil((endMs - Date.now()) / 1000));
+    function tick() {
+        const remain = Math.max(0, Math.ceil((endMs - Date.now()) / 1000));
 
-            if (remain <= 0) {
-                box.textContent = "Bạn có thể thử đăng nhập lại.";
-                box.classList.remove("alert-danger");
-                box.classList.add("alert-success");
-                if (btn) btn.disabled = false;
-                return;
-            }
-
-            box.textContent = `Bạn đã nhập sai 5 lần. Vui lòng thử lại sau ${remain}s.`;
-            setTimeout(tick, 200);
+        if (remain <= 0) {
+            box.textContent = "Bạn có thể đăng nhập lại.";
+            box.classList.remove("alert-danger");
+            box.classList.add("alert-success");
+            return;
         }
 
-        tick();
-    })();
-    </script>
+        box.classList.remove("alert-success");
+        box.classList.add("alert-danger");
+        box.textContent = `Bạn đã nhập sai 5 lần. Vui lòng thử lại sau ${remain}s.`;
+        setTimeout(tick, 200);
+    }
+
+    tick();
+})();
+</script>
+
 }

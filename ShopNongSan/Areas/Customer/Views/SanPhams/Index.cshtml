@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Danh sách sản phẩm";
     var filter = ViewBag.Filter as SanPhamFilterVM ?? new SanPhamFilterVM();
+    var isRateLimited = ViewBag.RateLimitMsg != null;
 }
 
 @section Head {
@@ -220,6 +221,18 @@
             max-height: 200px !important;
         }
 
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .select2-results__option {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .select2-container--default .select2-selection--single {
             height: calc(1.5em + 1.5rem + 4px) !important;
             border-radius: 10px !important;
@@ -383,12 +396,21 @@
     </div>
 </div>
 
+@if (ViewBag.RateLimitMsg != null)
+{
+    <div class="alert alert-warning" id="rateLimitBox" data-remaining="@ViewBag.RateLimitRemainingSeconds">
+        <span id="rateLimitText">B&#7841;n &#273;ang b&#7883; gi&#7899;i h&#7841;n, vui l&#242;ng th&#7917; l&#7841;i sau </span>
+        <strong id="rateLimitCountdown">@ViewBag.RateLimitRemainingSeconds</strong>
+        <span> giây.</span>
+    </div>
+}
+
 <!-- Filter Section -->
 <div class="filter-container">
     <h3 class="filter-title"><i class="bi bi-funnel"></i>Bộ lọc sản phẩm</h3>
 
     <form method="get" asp-area="Customer" asp-controller="SanPhams" asp-action="Index"
-          class="filter-inline d-flex flex-wrap align-items-end" id="filterForm">
+          class="filter-inline d-flex flex-wrap align-items-end" id="filterForm" data-rate-limited="@(isRateLimited ? "true" : "false")">
 
         <div class="fi keyword">
             <label class="form-label"><i class="bi bi-search me-1"></i>Từ khóa</label>
@@ -411,7 +433,7 @@
 
         <div class="fi">
             <label class="form-label"><i class="bi bi-sort-down me-1"></i>Sắp xếp</label>
-            <select name="Sort" class="form-select">
+            <select name="Sort" class="form-select" @(isRateLimited ? "disabled=\"disabled\"" : "")>
                 <option value="" selected="@(string.IsNullOrEmpty(filter.Sort))">Theo tên (A→Z)</option>
                 <option value="price_asc" selected="@(filter.Sort == "price_asc")">Giá: Thấp → Cao</option>
                 <option value="price_desc" selected="@(filter.Sort == "price_desc")">Giá: Cao → Thấp</option>
@@ -424,21 +446,21 @@
             <div class="fi" style="min-width: 160px;">
                 <label class="form-label"><i class="bi bi-currency-exchange me-1"></i>Giá từ</label>
                 <div class="input-group">
-                    <input type="text" name="GiaMinStr" value="@(filter.GiaMinStr ?? "")" class="form-control vnd-only" placeholder="0" inputmode="numeric">
+                    <input type="text" name="GiaMinStr" value="@(filter.GiaMinStr ?? "")" class="form-control vnd-only" placeholder="0" inputmode="numeric" @(isRateLimited ? "disabled=\"disabled\"" : "")>
                     <span class="input-group-text">đ</span>
                 </div>
             </div>
             <div class="fi" style="min-width: 160px;">
                 <label class="form-label">đến</label>
                 <div class="input-group">
-                    <input type="text" name="GiaMaxStr" value="@(filter.GiaMaxStr ?? "")" class="form-control vnd-only" placeholder="999,999,999" inputmode="numeric">
+                    <input type="text" name="GiaMaxStr" value="@(filter.GiaMaxStr ?? "")" class="form-control vnd-only" placeholder="999,999,999" inputmode="numeric" @(isRateLimited ? "disabled=\"disabled\"" : "")>
                     <span class="input-group-text">đ</span>
                 </div>
             </div>
         </div>
 
         <div class="d-flex align-items-end gap-3 mt-3">
-            <button type="submit" class="btn btn-filter" id="filterBtn">
+            <button type="submit" class="btn btn-filter" id="filterBtn" @(isRateLimited ? "disabled=\"disabled\"" : "")>
                 <i class="bi bi-funnel-fill me-2"></i>Áp dụng lọc
             </button>
             <a asp-area="Customer" asp-controller="SanPhams" asp-action="Index" class="btn btn-clear">
@@ -544,6 +566,66 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        (function initRateLimit(){
+            const box = document.getElementById('rateLimitBox');
+            if (!box) return;
+
+            const form = document.getElementById('filterForm');
+            const remaining = Number(box.dataset.remaining || 0);
+            let seconds = Number.isFinite(remaining) ? remaining : 0;
+
+            function setDisabled(disabled){
+                if (!form) return;
+                form.dataset.rateLimited = disabled ? 'true' : 'false';
+                form.querySelectorAll('input, select, button').forEach(el => {
+                    el.disabled = disabled;
+                });
+            }
+
+            function render(){
+                const label = document.getElementById('rateLimitText');
+                const countdown = document.getElementById('rateLimitCountdown');
+
+                if (seconds <= 0){
+                    if (label) { label.textContent = '\u0110\u00e3 h\u1ebft gi\u1edbi h\u1ea1n, b\u1ea1n c\u00f3 th\u1ec3 ti\u1ebfp t\u1ee5c t\u00ecm ki\u1ebfm.'; }
+                    if (countdown) { countdown.textContent = ''; }
+                    setDisabled(false);
+                    return;
+                }
+
+                if (label) { label.textContent = '\u0110ang b\u1ecb gi\u1edbi h\u1ea1n, vui l\u00f2ng th\u1eed l\u1ea1i sau '; }
+                if (countdown) { countdown.textContent = seconds.toString(); }
+                setDisabled(true);
+            }
+
+            render();
+            if (seconds > 0){
+                const timer = setInterval(() => {
+                    seconds -= 1;
+                    if (seconds <= 0){
+                        clearInterval(timer);
+                    }
+                    render();
+                }, 1000);
+            }
+
+            if (form){
+                form.addEventListener('submit', e => {
+                    if (form.dataset.rateLimited === 'true'){
+                        e.preventDefault();
+                    }
+                });
+
+                form.addEventListener('keydown', e => {
+                    if (form.dataset.rateLimited === 'true' && e.key === 'Enter'){
+                        e.preventDefault();
+                    }
+                });
+            }
+        })();
+    </script>
 
     <script>
         // Keyframes cho fadeInUp
