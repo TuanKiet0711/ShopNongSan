@@ -5,6 +5,8 @@ VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopNongSan", "ShopNongSan\ShopNongSan.csproj", "{059F660B-7910-4C65-B58B-817A15DB3A69}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopNongSan.Tests", "ShopNongSan\ShopNongSan.Tests\ShopNongSan.Tests.csproj", "{5A912438-C3BD-B17F-32BE-AD5BE08AE1A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{059F660B-7910-4C65-B58B-817A15DB3A69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{059F660B-7910-4C65-B58B-817A15DB3A69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{059F660B-7910-4C65-B58B-817A15DB3A69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A912438-C3BD-B17F-32BE-AD5BE08AE1A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A912438-C3BD-B17F-32BE-AD5BE08AE1A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A912438-C3BD-B17F-32BE-AD5BE08AE1A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A912438-C3BD-B17F-32BE-AD5BE08AE1A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

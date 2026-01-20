@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Models;
 using ShopNongSan.Services;
-using Stripe; // 👈 thêm dòng này
+using Stripe; // ?? th�m d�ng n�y
 
 var builder = WebApplication.CreateBuilder(args);
-Console.WriteLine(">>> RUNNING PROGRAM.CS: " + typeof(Program).Assembly.FullName);
+
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -25,7 +25,7 @@ builder.Services
         options.Cookie.Name = "ShopNongSan.Auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // bắt buộc HTTPS
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // b?t bu?c HTTPS
     });
 
 // DB
@@ -37,7 +37,7 @@ builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPa
 builder.Services.AddSingleton<IVnPayService, VnPayService>();
 builder.Services.AddHttpContextAccessor();
 
-// ⭐ STRIPE settings + service
+// ? STRIPE settings + service
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddScoped<IStripeService, StripeService>();
@@ -60,8 +60,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
 
 var app = builder.Build();
 
-// ====== THỨ TỰ QUAN TRỌNG ======
-app.UseForwardedHeaders(); // ✅ PHẢI ĐỂ TRƯỚC MỌI THỨ KHÁC LIÊN QUAN HTTPS
+// ====== TH? T? QUAN TR?NG ======
+app.UseForwardedHeaders(); // ? PH?I �? TRU?C M?I TH? KH�C LI�N QUAN HTTPS
 
 if (!app.Environment.IsDevelopment())
 {
@@ -84,17 +84,20 @@ app.MapAreaControllerRoute(
     pattern: "Admin/{controller=Home}/{action=Index}/{id?}"
 ).RequireAuthorization("AdminOrStaff");
 
-// Route cho các Area khác (Customer…)
+// Route cho c�c Area kh�c (Customer�)
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-// "/" -> Trang chủ Customer
+// "/" -> Trang ch? Customer
 app.MapGet("/", () => Results.Redirect("/Customer/Home"));
 
-// Cho các attribute route tuyệt đối (VnPayReturn, IPN, v.v.)
+// Cho c�c attribute route tuy?t d?i (VnPayReturn, IPN, v.v.)
 app.MapControllers();
 
 app.Run();
+
+
+
