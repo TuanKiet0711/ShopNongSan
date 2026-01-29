@@ -16,6 +16,13 @@ namespace ShopNongSan.Areas.Customer.Controllers
         private readonly RateLimitService _rate;
 
         private const int MAX_FAIL = 5;
+        private const string LOGIN_ENDPOINT = "/tai-khoan/dang-nhap";
+        private const string LOGIN_USER_ENDPOINT = "/tai-khoan/dang-nhap:user";
+        private const string LOGIN_LOCKOUT_ENDPOINT = "/tai-khoan/dang-nhap:lockout";
+        private const string REGISTER_ENDPOINT = "/tai-khoan/dang-ky";
+        private const int REGISTER_MAX = 5;
+        private static readonly TimeSpan REGISTER_WINDOW = TimeSpan.FromMinutes(1);
+        private const string REGISTER_CAPTCHA_TEMP = "RegisterCaptchaText";
 
         public TaiKhoanController(NongSanContext db, RateLimitService rate)
         {
@@ -56,13 +63,37 @@ namespace ShopNongSan.Areas.Customer.Controllers
                 return View(model);
             }
 
-            string endpoint = "/tai-khoan/dang-nhap";
             string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-            string key = RateLimitService.BuildKey(model.TenDangNhap, ip);
+            string userKey = RateLimitService.BuildUserKey(model.TenDangNhap);
+            string ipKey = RateLimitService.BuildKey(model.TenDangNhap, ip);
 
-            // 1) Check đang bị chặn không
-            var blocked = await _rate.IsBlockedAsync(key, endpoint);
-            model.FailCount = blocked.FailCount;
+            // 1) Check lockout theo username-only
+            var lockout = await _rate.IsLockoutAsync(userKey, LOGIN_LOCKOUT_ENDPOINT);
+            if (lockout.IsBlocked && lockout.BlockUntil.HasValue)
+            {
+                var untilUtc = DateTime.SpecifyKind(lockout.BlockUntil.Value, DateTimeKind.Utc);
+
+                model.BlockUntilMs = new DateTimeOffset(untilUtc).ToUnixTimeMilliseconds();
+                model.RemainingSeconds = Math.Max(0, (int)Math.Ceiling((untilUtc - DateTime.UtcNow).TotalSeconds));
+                model.FailCount = await _rate.GetPersistentCountAsync(userKey, LOGIN_USER_ENDPOINT);
+
+                var msgLocked = $"Tài khoản \"{model.TenDangNhap}\" đang bị khóa. Vui lòng thử lại sau {model.RemainingSeconds}s.";
+
+                await _rate.LogAsync(null, model.TenDangNhap, ip, userKey, LOGIN_LOCKOUT_ENDPOINT, "POST",
+                    thanhCong: false, biGioiHan: true, thongBao: msgLocked);
+
+                TempData["Msg"] = msgLocked;
+                TempData["TenDangNhap"] = model.TenDangNhap;
+                TempData["FailCount"] = model.FailCount;
+                TempData["RemainingSeconds"] = model.RemainingSeconds;
+                TempData["BlockUntilMs"] = model.BlockUntilMs.ToString();
+
+                return RedirectToAction(nameof(DangNhap), new { returnUrl = model.ReturnUrl });
+            }
+
+            // 2) Check rate limit ngắn theo username+ip
+            var blocked = await _rate.IsBlockedAsync(ipKey, LOGIN_ENDPOINT);
+            model.FailCount = await _rate.GetPersistentCountAsync(userKey, LOGIN_USER_ENDPOINT);
 
             if (blocked.IsBlocked && blocked.BlockUntil.HasValue)
             {
@@ -72,10 +103,12 @@ namespace ShopNongSan.Areas.Customer.Controllers
                 model.BlockUntilMs = new DateTimeOffset(untilUtc).ToUnixTimeMilliseconds();
                 model.RemainingSeconds = Math.Max(0, (int)Math.Ceiling((untilUtc - DateTime.UtcNow).TotalSeconds));
 
-                await _rate.LogAsync(null, model.TenDangNhap, ip, key, endpoint, "POST",
-                    thanhCong: false, biGioiHan: true, thongBao: blocked.Message);
+                var msgBlocked = $"Tài khoản \"{model.TenDangNhap}\" đang bị khóa. Vui lòng thử lại sau {model.RemainingSeconds}s.";
 
-                TempData["Msg"] = $"Tài khoản \"{model.TenDangNhap}\" đang bị khóa. Vui lòng thử lại sau {model.RemainingSeconds}s.";
+                await _rate.LogAsync(null, model.TenDangNhap, ip, ipKey, LOGIN_ENDPOINT, "POST",
+                    thanhCong: false, biGioiHan: true, thongBao: msgBlocked);
+
+                TempData["Msg"] = msgBlocked;
                 TempData["TenDangNhap"] = model.TenDangNhap;
                 TempData["FailCount"] = model.FailCount;
                 TempData["RemainingSeconds"] = model.RemainingSeconds;
@@ -92,24 +125,22 @@ namespace ShopNongSan.Areas.Customer.Controllers
 
             if (user == null)
             {
-                // Sai -> tăng đếm
-                await _rate.RegisterFailAsync(key, endpoint);
+                // Sai -> tăng đếm (username+ip + username-only)
+                var failResult = await _rate.RegisterLoginFailAsync(
+                    userKey, ipKey, LOGIN_ENDPOINT, LOGIN_USER_ENDPOINT, LOGIN_LOCKOUT_ENDPOINT);
+                model.FailCount = failResult.FailCount;
 
-                // lấy lại trạng thái sau khi tăng fail
-                var st2 = await _rate.IsBlockedAsync(key, endpoint);
-                model.FailCount = st2.FailCount;
-
-                // nếu vừa sai lần 5 => bị chặn ngay
-                if (st2.IsBlocked && st2.BlockUntil.HasValue)
+                // nếu vừa sai lần 5 => bị khóa theo level
+                if (failResult.IsLocked && failResult.BlockUntil.HasValue)
                 {
-                    var untilUtc2 = DateTime.SpecifyKind(st2.BlockUntil.Value, DateTimeKind.Utc);
+                    var untilUtc2 = DateTime.SpecifyKind(failResult.BlockUntil.Value, DateTimeKind.Utc);
 
                     model.BlockUntilMs = new DateTimeOffset(untilUtc2).ToUnixTimeMilliseconds();
                     model.RemainingSeconds = Math.Max(0, (int)Math.Ceiling((untilUtc2 - DateTime.UtcNow).TotalSeconds));
 
                     var msgBlocked = $"Tài khoản \"{model.TenDangNhap}\" đang bị khóa. Vui lòng thử lại sau {model.RemainingSeconds}s.";
 
-                    await _rate.LogAsync(null, model.TenDangNhap, ip, key, endpoint, "POST",
+                    await _rate.LogAsync(null, model.TenDangNhap, ip, userKey, LOGIN_LOCKOUT_ENDPOINT, "POST",
                         thanhCong: false, biGioiHan: true, thongBao: msgBlocked);
 
                     TempData["Msg"] = msgBlocked;
@@ -125,7 +156,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
                 int remainTry = Math.Max(0, MAX_FAIL - model.FailCount);
                 var msg = $"Sai tài khoản hoặc mật khẩu. Bạn chỉ được nhập sai tối đa {MAX_FAIL} lần. Còn {remainTry} lần.";
 
-                await _rate.LogAsync(null, model.TenDangNhap, ip, key, endpoint, "POST",
+                await _rate.LogAsync(null, model.TenDangNhap, ip, ipKey, LOGIN_ENDPOINT, "POST",
                     thanhCong: false, biGioiHan: false, thongBao: msg);
 
                 TempData["Msg"] = msg;
@@ -140,9 +171,9 @@ namespace ShopNongSan.Areas.Customer.Controllers
             }
 
             // 3) Đúng -> reset
-            await _rate.ResetAsync(key, endpoint);
+            await _rate.ResetLoginAsync(userKey, ipKey, LOGIN_ENDPOINT, LOGIN_USER_ENDPOINT, LOGIN_LOCKOUT_ENDPOINT);
 
-            await _rate.LogAsync(user.Id, model.TenDangNhap, ip, key, endpoint, "POST",
+            await _rate.LogAsync(user.Id, model.TenDangNhap, ip, ipKey, LOGIN_ENDPOINT, "POST",
                 thanhCong: true, biGioiHan: false, thongBao: "Đăng nhập thành công.");
 
             // ===== SIGN IN =====
@@ -178,13 +209,36 @@ namespace ShopNongSan.Areas.Customer.Controllers
         [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
         public async Task<IActionResult> DangKy(DangKyVM model)
         {
-            if (!ModelState.IsValid) return View(model);
+            string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            string ipKey = RateLimitService.BuildKey(null, ip);
+            var blocked = await _rate.IsBlockedAsync(ipKey, REGISTER_ENDPOINT, REGISTER_MAX, REGISTER_WINDOW);
+            var activeCount = await _rate.GetActiveCountAsync(ipKey, REGISTER_ENDPOINT);
+            bool requireCaptcha = activeCount >= 2;
+            if (requireCaptcha)
+            {
+                if (!TryValidateRegisterCaptcha(model.CaptchaInput, out var captchaError))
+                {
+                    ModelState.AddModelError(nameof(model.CaptchaInput), captchaError);
+
+                    ShowRegisterCaptcha();
+                    return View(model);
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                if (requireCaptcha) ShowRegisterCaptcha();
+                return View(model);
+            }
+
+            await _rate.RegisterHitAsync(ipKey, REGISTER_ENDPOINT, REGISTER_MAX, REGISTER_WINDOW);
 
             var ten = (model.TenDangNhap ?? "").Trim();
             bool existed = await _db.TaiKhoans.AnyAsync(x => x.TenDangNhap == ten);
             if (existed)
             {
                 ModelState.AddModelError(nameof(model.TenDangNhap), "Tên đăng nhập đã tồn tại.");
+                if (requireCaptcha) ShowRegisterCaptcha();
                 return View(model);
             }
 
@@ -208,6 +262,49 @@ namespace ShopNongSan.Areas.Customer.Controllers
                 MatKhau = model.MatKhau,
                 GhiNho = true
             });
+        }
+
+        private void ShowRegisterCaptcha()
+        {
+            var code = GenerateRegisterCaptchaCode();
+            TempData[REGISTER_CAPTCHA_TEMP] = code;
+            ViewBag.CaptchaEnabled = true;
+            ViewBag.CaptchaCode = code;
+        }
+
+        private static string GenerateRegisterCaptchaCode()
+        {
+            const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            Span<char> buffer = stackalloc char[5];
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] = alphabet[Random.Shared.Next(alphabet.Length)];
+            }
+            return new string(buffer);
+        }
+
+        private bool TryValidateRegisterCaptcha(string? input, out string error)
+        {
+            error = "Vui lòng nhập mã CAPTCHA.";
+            var code = TempData[REGISTER_CAPTCHA_TEMP] as string;
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                error = "CAPTCHA đã hết hạn, vui lòng thử lại.";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                error = "Vui lòng nhập mã CAPTCHA.";
+                return false;
+            }
+
+            if (!string.Equals(input.Trim(), code, StringComparison.Ordinal))
+            {
+                error = "CAPTCHA không đúng.";
+                return false;
+            }
+
+            return true;
         }
 
         // POST: /Customer/TaiKhoan/DangXuat

@@ -27,6 +27,7 @@
   <ItemGroup>
     <Compile Remove="ShopNongSan.Tests\**\*.cs" />
     <None Remove="ShopNongSan.Tests\**\*" />
+    <Content Remove="ShopNongSan.Tests\**\*" />
   </ItemGroup>
 
 </Project>

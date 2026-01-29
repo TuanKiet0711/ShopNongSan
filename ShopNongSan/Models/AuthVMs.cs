@@ -42,4 +42,7 @@ public class DangKyVM
     [DataType(DataType.Password)]
     [Compare("MatKhau", ErrorMessage = "Mật khẩu nhập lại không khớp")]
     public string NhapLaiMatKhau { get; set; } = "";
+
+    [Display(Name = "Xác minh")]
+    public string CaptchaInput { get; set; } = "";
 }

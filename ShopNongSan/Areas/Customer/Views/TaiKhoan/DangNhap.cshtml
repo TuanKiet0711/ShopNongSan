@@ -33,13 +33,19 @@
 
             <div class="mb-3">
                 <label asp-for="TenDangNhap" class="form-label"></label>
-                <input asp-for="TenDangNhap" class="form-control" />
+                <input asp-for="TenDangNhap" class="form-control" placeholder="Nhập tên đăng nhập" />
                 <span asp-validation-for="TenDangNhap" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
                 <label asp-for="MatKhau" class="form-label"></label>
-                <input asp-for="MatKhau" type="password" class="form-control" />
+                <div class="input-group">
+                    <input asp-for="MatKhau" type="password" class="form-control" placeholder="Nhập mật khẩu" />
+                    <button class="btn btn-outline-secondary toggle-password" type="button"
+                            data-target="#MatKhau" aria-label="Hiển thị mật khẩu">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
                 <span asp-validation-for="MatKhau" class="text-danger"></span>
             </div>
 
@@ -94,6 +100,32 @@
     }
 
     tick();
+})();
+</script>
+
+    <script>
+(function () {
+    const toggles = document.querySelectorAll(".toggle-password");
+    if (!toggles.length) return;
+
+    toggles.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const targetSelector = btn.getAttribute("data-target");
+            const input = targetSelector ? document.querySelector(targetSelector) : null;
+            if (!input) return;
+
+            const isPassword = input.getAttribute("type") === "password";
+            input.setAttribute("type", isPassword ? "text" : "password");
+
+            const icon = btn.querySelector("i");
+            if (icon) {
+                icon.classList.toggle("bi-eye", !isPassword);
+                icon.classList.toggle("bi-eye-slash", isPassword);
+            }
+
+            btn.setAttribute("aria-label", isPassword ? "Ẩn mật khẩu" : "Hiển thị mật khẩu");
+        });
+    });
 })();
 </script>
 
