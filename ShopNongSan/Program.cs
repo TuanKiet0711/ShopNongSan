@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // MVC
 builder.Services.AddControllersWithViews();
+builder.Services.Configure<RateLimitOptions>(builder.Configuration.GetSection("RateLimit"));
 builder.Services.AddScoped<RateLimitService>();
 // Cookie Authentication (HTTPS + top-level redirect compatible)
 builder.Services

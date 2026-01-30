@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Models;
+using Microsoft.Extensions.Options;
 
 namespace ShopNongSan.Services
 {
     public class RateLimitService
     {
         private readonly NongSanContext _db;
+        private readonly RateLimitOptions _options;
 
         // cấu hình yêu cầu: sai 5 lần => chặn 60s
         private const int MAX_FAIL = 5;
@@ -13,9 +15,10 @@ namespace ShopNongSan.Services
         private const int LOCKOUT_BASE_SECONDS = 60;
         private const int LOCKOUT_MAX_SECONDS = 60 * 60;
 
-        public RateLimitService(NongSanContext db)
+        public RateLimitService(NongSanContext db, IOptions<RateLimitOptions>? options = null)
         {
             _db = db;
+            _options = options?.Value ?? new RateLimitOptions();
         }
 
         // tạo khóa rate limit theo username + ip (để không chặn nhầm người khác)
@@ -72,7 +75,11 @@ namespace ShopNongSan.Services
                 .OrderByDescending(x => x.CapNhatLuc)
                 .FirstOrDefaultAsync();
 
-            return counter?.SoLuong ?? 0;
+            if (counter == null) return 0;
+            if (_options.ResetOnWindowExpiry && counter.KetThucCuaSo <= DateTime.UtcNow)
+                return 0;
+
+            return counter.SoLuong;
         }
 
         public async Task<(bool IsBlocked, DateTime? BlockUntil, int Level)> IsLockoutAsync(string key, string endpoint)
@@ -147,8 +154,16 @@ namespace ShopNongSan.Services
 
             if (counter.KetThucCuaSo <= now)
             {
-                // h?t c?a s? nhung v?n gi? so l?n sai ti?p t?c t?nh d?n
-                counter.SoLuong += 1;
+                if (_options.ResetOnWindowExpiry)
+                {
+                    // h?t c?a s? -> reset v? 1 v? m? c?a s? m?i
+                    counter.SoLuong = 1;
+                }
+                else
+                {
+                    // h?t c?a s? nhung v?n gi? so l?n sai ti?p t?c t?nh d?n
+                    counter.SoLuong += 1;
+                }
                 counter.BatDauCuaSo = now;
                 counter.KetThucCuaSo = now.Add(window);
                 counter.CapNhatLuc = now;
@@ -193,7 +208,7 @@ namespace ShopNongSan.Services
                     GiaTriKhoa = key,
                     Endpoint = endpoint,
                     BatDauCuaSo = now,
-                    KetThucCuaSo = DateTime.MaxValue,
+                    KetThucCuaSo = _options.ResetOnWindowExpiry ? now.Add(WINDOW) : DateTime.MaxValue,
                     SoLuong = 1,
                     CapNhatLuc = now
                 };
@@ -202,7 +217,16 @@ namespace ShopNongSan.Services
                 return counter.SoLuong;
             }
 
-            counter.SoLuong += 1;
+            if (_options.ResetOnWindowExpiry && counter.KetThucCuaSo <= now)
+            {
+                counter.SoLuong = 1;
+                counter.BatDauCuaSo = now;
+                counter.KetThucCuaSo = now.Add(WINDOW);
+            }
+            else
+            {
+                counter.SoLuong += 1;
+            }
             counter.CapNhatLuc = now;
 
             _db.DemRateLimits.Update(counter);

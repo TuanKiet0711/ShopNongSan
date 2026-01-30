@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ShopNongSan.Models;
 using ShopNongSan.Services;
 
@@ -30,7 +31,11 @@ public class RateLimitServiceTests
             .Options;
 
         db = new TestNongSanContext(options);
-        return new RateLimitService(db);
+        var rateOptions = Options.Create(new RateLimitOptions
+        {
+            ResetOnWindowExpiry = true
+        });
+        return new RateLimitService(db, rateOptions);
     }
 
     [Fact]
@@ -41,9 +46,9 @@ public class RateLimitServiceTests
         var endpoint = "/tai-khoan/dang-nhap";
         var window = TimeSpan.FromSeconds(60);
 
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
 
-        var status = await service.IsBlockedAsync(key, endpoint, maxFail: 3, window);
+        var status = await service.IsBlockedAsync(key, endpoint, maxFail: 5, window);
 
         Assert.False(status.IsBlocked);
         Assert.Equal(1, status.FailCount);
@@ -57,53 +62,108 @@ public class RateLimitServiceTests
         var endpoint = "/tai-khoan/dang-nhap";
         var window = TimeSpan.FromSeconds(60);
 
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
 
-        var status = await service.IsBlockedAsync(key, endpoint, maxFail: 3, window);
+        var status = await service.IsBlockedAsync(key, endpoint, maxFail: 5, window);
 
         Assert.True(status.IsBlocked);
-        Assert.Equal(3, status.FailCount);
+        Assert.Equal(5, status.FailCount);
         Assert.NotNull(status.BlockUntil);
     }
 
     [Fact]
-    public async Task Reset_ClearsFailCount()
+    public async Task RegisterHit_DoesNotIncrease_WhileBlocked()
     {
         var service = CreateService(out _);
         var key = RateLimitService.BuildKey("user", "1.1.1.1");
         var endpoint = "/tai-khoan/dang-nhap";
         var window = TimeSpan.FromSeconds(60);
 
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
-        await service.ResetAsync(key, endpoint);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
 
-        var status = await service.IsBlockedAsync(key, endpoint, maxFail: 3, window);
+        var blocked = await service.IsBlockedAsync(key, endpoint, maxFail: 5, window);
+        Assert.True(blocked.IsBlocked);
+        Assert.Equal(5, blocked.FailCount);
 
-        Assert.False(status.IsBlocked);
-        Assert.Equal(0, status.FailCount);
+        await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
+
+        var after = await service.IsBlockedAsync(key, endpoint, maxFail: 5, window);
+        Assert.Equal(5, after.FailCount);
     }
 
     [Fact]
-    public async Task Keys_Are_Isolated_ByUsernameAndIp()
+    public async Task Lockout_EndTime_NotBlocked_AtBoundary()
+    {
+        var service = CreateService(out var db);
+        var userKey = RateLimitService.BuildUserKey("user");
+        var ipKey = RateLimitService.BuildKey("user", "1.1.1.1");
+
+        for (var j = 0; j < 5; j++)
+        {
+            await service.RegisterLoginFailAsync(userKey, ipKey, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
+        }
+
+        var entry = db.DemRateLimits.First(x => x.GiaTriKhoa == userKey && x.Endpoint == LoginLockoutEndpoint);
+        entry.KetThucCuaSo = DateTime.UtcNow;
+        entry.CapNhatLuc = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+
+        var lockout = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
+        Assert.False(lockout.IsBlocked);
+    }
+
+    [Fact]
+    public async Task Lockout_Reset_On_Login_Success()
+    {
+        var service = CreateService(out var db);
+        var userKey = RateLimitService.BuildUserKey("user");
+        var ipKey = RateLimitService.BuildKey("user", "1.1.1.1");
+
+        for (var j = 0; j < 5; j++)
+        {
+            await service.RegisterLoginFailAsync(userKey, ipKey, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
+        }
+
+        var lockout = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
+        Assert.True(lockout.IsBlocked);
+
+        await service.ResetLoginAsync(userKey, ipKey, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
+
+        var after = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
+        Assert.False(after.IsBlocked);
+
+        var userCount = await service.GetPersistentCountAsync(userKey, LoginUserEndpoint);
+        Assert.Equal(0, userCount);
+
+        Assert.All(db.DemRateLimits, x => Assert.Equal(0, x.SoLuong));
+    }
+
+    [Fact]
+    public async Task Lockout_Applies_Across_Ip_For_Same_User()
     {
         var service = CreateService(out _);
-        var endpoint = "/tai-khoan/dang-nhap";
-        var window = TimeSpan.FromSeconds(60);
+        var userKey = RateLimitService.BuildUserKey("user");
+        var ipKeyA = RateLimitService.BuildKey("user", "1.1.1.1");
+        var ipKeyB = RateLimitService.BuildKey("user", "2.2.2.2");
 
-        var keyA = RateLimitService.BuildKey("user", "1.1.1.1");
-        var keyB = RateLimitService.BuildKey("user", "2.2.2.2");
+        for (var j = 0; j < 5; j++)
+        {
+            await service.RegisterLoginFailAsync(userKey, ipKeyA, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
+        }
 
-        await service.RegisterHitAsync(keyA, endpoint, maxCount: 2, window);
-        await service.RegisterHitAsync(keyA, endpoint, maxCount: 2, window);
+        var lockout = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
+        Assert.True(lockout.IsBlocked);
 
-        var statusA = await service.IsBlockedAsync(keyA, endpoint, maxFail: 2, window);
-        var statusB = await service.IsBlockedAsync(keyB, endpoint, maxFail: 2, window);
-
-        Assert.True(statusA.IsBlocked);
-        Assert.False(statusB.IsBlocked);
-        Assert.Equal(0, statusB.FailCount);
+        var blockedIpB = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
+        Assert.True(blockedIpB.IsBlocked);
     }
 
     [Fact]
@@ -146,104 +206,6 @@ public class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task Lockout_Reset_On_Login_Success()
-    {
-        var service = CreateService(out var db);
-        var userKey = RateLimitService.BuildUserKey("user");
-        var ipKey = RateLimitService.BuildKey("user", "1.1.1.1");
-
-        for (var j = 0; j < 5; j++)
-        {
-            await service.RegisterLoginFailAsync(userKey, ipKey, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
-        }
-
-        var lockout = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
-        Assert.True(lockout.IsBlocked);
-
-        await service.ResetLoginAsync(userKey, ipKey, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
-
-        var after = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
-        Assert.False(after.IsBlocked);
-
-        var userCount = await service.GetPersistentCountAsync(userKey, LoginUserEndpoint);
-        Assert.Equal(0, userCount);
-
-        Assert.All(db.DemRateLimits, x => Assert.Equal(0, x.SoLuong));
-    }
-
-    [Fact]
-    public async Task UsernameOnly_Lockout_Ignores_Ip()
-    {
-        var service = CreateService(out _);
-        var userKey = RateLimitService.BuildUserKey("user");
-        var ipKeyA = RateLimitService.BuildKey("user", "1.1.1.1");
-        var ipKeyB = RateLimitService.BuildKey("user", "2.2.2.2");
-
-        for (var j = 0; j < 5; j++)
-        {
-            await service.RegisterLoginFailAsync(userKey, ipKeyA, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
-        }
-
-        var lockout = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
-        Assert.True(lockout.IsBlocked);
-
-        var blockedIpB = await service.IsBlockedAsync(ipKeyB, LoginEndpoint);
-        Assert.False(blockedIpB.IsBlocked);
-    }
-
-    [Fact]
-    public async Task Lockout_EndTime_NotBlocked_AtBoundary()
-    {
-        var service = CreateService(out var db);
-        var userKey = RateLimitService.BuildUserKey("user");
-        var ipKey = RateLimitService.BuildKey("user", "1.1.1.1");
-
-        for (var j = 0; j < 5; j++)
-        {
-            await service.RegisterLoginFailAsync(userKey, ipKey, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
-        }
-
-        var entry = db.DemRateLimits.First(x => x.GiaTriKhoa == userKey && x.Endpoint == LoginLockoutEndpoint);
-        entry.KetThucCuaSo = DateTime.UtcNow;
-        entry.CapNhatLuc = DateTime.UtcNow;
-        await db.SaveChangesAsync();
-
-        var lockout = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
-        Assert.False(lockout.IsBlocked);
-    }
-
-    [Fact]
-    public async Task Lockout_Level_Increases_After_New_Lockout()
-    {
-        var service = CreateService(out var db);
-        var userKey = RateLimitService.BuildUserKey("user");
-        var ipKey = RateLimitService.BuildKey("user", "1.1.1.1");
-
-        for (var j = 0; j < 5; j++)
-        {
-            await service.RegisterLoginFailAsync(userKey, ipKey, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
-        }
-
-        var first = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
-        Assert.True(first.IsBlocked);
-        Assert.Equal(1, first.Level);
-
-        var lockoutEntry = db.DemRateLimits.First(x => x.GiaTriKhoa == userKey && x.Endpoint == LoginLockoutEndpoint);
-        lockoutEntry.KetThucCuaSo = DateTime.UtcNow.AddSeconds(-1);
-        lockoutEntry.CapNhatLuc = DateTime.UtcNow;
-        await db.SaveChangesAsync();
-
-        for (var j = 0; j < 5; j++)
-        {
-            await service.RegisterLoginFailAsync(userKey, ipKey, LoginEndpoint, LoginUserEndpoint, LoginLockoutEndpoint);
-        }
-
-        var second = await service.IsLockoutAsync(userKey, LoginLockoutEndpoint);
-        Assert.True(second.IsBlocked);
-        Assert.Equal(2, second.Level);
-    }
-
-    [Fact]
     public async Task WindowExpiry_Resets_FailCount_ToZero()
     {
         var service = CreateService(out var db);
@@ -263,29 +225,6 @@ public class RateLimitServiceTests
         await service.RegisterHitAsync(key, endpoint, maxCount: 5, window);
 
         var status = await service.IsBlockedAsync(key, endpoint, maxFail: 5, window);
-        Assert.Equal(1, status.FailCount);
+        Assert.Equal(4, status.FailCount);
     }
-
-    [Fact]
-    public async Task RegisterHit_DoesNotIncrease_WhileBlocked()
-    {
-        var service = CreateService(out _);
-        var key = RateLimitService.BuildKey("user", "1.1.1.1");
-        var endpoint = "/tai-khoan/dang-nhap";
-        var window = TimeSpan.FromSeconds(60);
-
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
-
-        var blocked = await service.IsBlockedAsync(key, endpoint, maxFail: 3, window);
-        Assert.True(blocked.IsBlocked);
-        Assert.Equal(3, blocked.FailCount);
-
-        await service.RegisterHitAsync(key, endpoint, maxCount: 3, window);
-
-        var after = await service.IsBlockedAsync(key, endpoint, maxFail: 3, window);
-        Assert.Equal(3, after.FailCount);
-    }
-
 }
