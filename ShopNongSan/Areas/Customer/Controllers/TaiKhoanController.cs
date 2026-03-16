@@ -16,6 +16,10 @@ namespace ShopNongSan.Areas.Customer.Controllers
         private readonly RateLimitService _rate;
 
         private const int MAX_FAIL = 5;
+        private const int USERNAME_MIN = 5;
+        private const int USERNAME_MAX = 20;
+        private const int PASSWORD_MIN = 6;
+        private const int PASSWORD_MAX = 20;
         private const string LOGIN_ENDPOINT = "/tai-khoan/dang-nhap";
         private const string LOGIN_USER_ENDPOINT = "/tai-khoan/dang-nhap:user";
         private const string LOGIN_LOCKOUT_ENDPOINT = "/tai-khoan/dang-nhap:lockout";
@@ -57,6 +61,21 @@ namespace ShopNongSan.Areas.Customer.Controllers
         [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
         public async Task<IActionResult> DangNhap(DangNhapVM model)
         {
+            model.TenDangNhap = (model.TenDangNhap ?? "").Trim();
+            model.MatKhau ??= "";
+
+            if (model.TenDangNhap.Length < USERNAME_MIN || model.TenDangNhap.Length > USERNAME_MAX)
+            {
+                ModelState.AddModelError(nameof(model.TenDangNhap),
+                    $"Tên đăng nhập phải từ {USERNAME_MIN} đến {USERNAME_MAX} ký tự.");
+            }
+
+            if (model.MatKhau.Length < PASSWORD_MIN || model.MatKhau.Length > PASSWORD_MAX)
+            {
+                ModelState.AddModelError(nameof(model.MatKhau),
+                    $"Mật khẩu phải từ {PASSWORD_MIN} đến {PASSWORD_MAX} ký tự.");
+            }
+
             if (!ModelState.IsValid)
             {
                 // validation field (required) -> return view trực tiếp vẫn OK
@@ -209,6 +228,21 @@ namespace ShopNongSan.Areas.Customer.Controllers
         [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
         public async Task<IActionResult> DangKy(DangKyVM model)
         {
+            model.TenDangNhap = (model.TenDangNhap ?? "").Trim();
+            model.MatKhau ??= "";
+
+            if (model.TenDangNhap.Length < USERNAME_MIN || model.TenDangNhap.Length > USERNAME_MAX)
+            {
+                ModelState.AddModelError(nameof(model.TenDangNhap),
+                    $"Tên đăng nhập phải từ {USERNAME_MIN} đến {USERNAME_MAX} ký tự.");
+            }
+
+            if (model.MatKhau.Length < PASSWORD_MIN || model.MatKhau.Length > PASSWORD_MAX)
+            {
+                ModelState.AddModelError(nameof(model.MatKhau),
+                    $"Mật khẩu phải từ {PASSWORD_MIN} đến {PASSWORD_MAX} ký tự.");
+            }
+
             string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             string ipKey = RateLimitService.BuildKey(null, ip);
             var blocked = await _rate.IsBlockedAsync(ipKey, REGISTER_ENDPOINT, REGISTER_MAX, REGISTER_WINDOW);
@@ -233,7 +267,7 @@ namespace ShopNongSan.Areas.Customer.Controllers
 
             await _rate.RegisterHitAsync(ipKey, REGISTER_ENDPOINT, REGISTER_MAX, REGISTER_WINDOW);
 
-            var ten = (model.TenDangNhap ?? "").Trim();
+            var ten = model.TenDangNhap;
             bool existed = await _db.TaiKhoans.AnyAsync(x => x.TenDangNhap == ten);
             if (existed)
             {
